@@ -29,3 +29,39 @@ env/
 **/migrations/__pycache__/
 **/migrations/*.pyc
 **/migrations/*.pyo
+
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Django
+db.sqlite3
+.env
+
+# VSCode
+.vscode/
+
+# OS 관련
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+
+# Migrations
+**/migrations/__pycache__/
+**/migrations/*.pyc
+**/migrations/*.pyo
+
+
+*.log
