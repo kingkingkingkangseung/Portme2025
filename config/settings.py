@@ -9,8 +9,12 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+import os
+from dotenv import load_dotenv
 
 from pathlib import Path
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,13 +31,57 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+#Auth 관련
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+LOGIN_REDIRECT_URL = '/'
+
+SOCIALACCOUNT_PROVIDERS = {
+    #구글
+    'google': {
+        'APP': {
+            'GOOGLE_CLIENT_ID' : os.getenv("GOOGLE_CLIENT_ID"),
+            'GOOGLE_CLIENT_SECRET' : os.getenv("GOOGLE_CLIENT_SECRET"),
+            'key': ''
+        }
+    }
+}
+
 
 # Application definition
 
 INSTALLED_APPS = [
+<<<<<<< HEAD
     'apps.user'
     'apps.portfolio'
     'apps.activity'
+=======
+    #dj-rest-auth
+    'rest_framework',
+    'rest_framework.authtoken',
+
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+
+    #AllOuth
+    'django.contrib.sites',  # allauth 필수
+    'allauth',
+    'allauth.account',  # 이메일/비밀번호 로그인용
+    'allauth.socialaccount',  # 소셜 로그인용
+
+    'allauth.socialaccount.providers.google',  # 구글 로그인 지원
+
+    #apps
+    'apps.user',
+    'apps.portfolio',
+    'apps.activity',
+
+>>>>>>> f90c686 (로그인초기개발)
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,6 +98,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'allauth.account.middleware.AccountMiddleware'
 ]
 
 ROOT_URLCONF = 'config.urls'
