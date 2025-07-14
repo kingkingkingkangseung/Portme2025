@@ -56,11 +56,7 @@ SOCIALACCOUNT_PROVIDERS = {
 # Application definition
 
 INSTALLED_APPS = [
-<<<<<<< HEAD
-    'apps.user'
-    'apps.portfolio'
-    'apps.activity'
-=======
+
     #dj-rest-auth
     'rest_framework',
     'rest_framework.authtoken',
@@ -81,7 +77,6 @@ INSTALLED_APPS = [
     'apps.portfolio',
     'apps.activity',
 
->>>>>>> f90c686 (로그인초기개발)
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
