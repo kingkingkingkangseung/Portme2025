@@ -12,4 +12,10 @@ urlpatterns = [
 
     # ✅ 프로필 등 메인 API들
     path('api/profiles/', include('apps.profiles.urls')),
+
+    # ✅ 활동 API
+    path('api/activities/', include('apps.activity.urls')),
+
+    # ✅ 포트폴리오 API
+    path('api/portfolios/', include('apps.portfolio.urls')),
 ]
