@@ -18,4 +18,8 @@ urlpatterns = [
 
     # ✅ 포트폴리오 API
     path('api/portfolios/', include('apps.portfolio.urls')),
+
+    # ✅ 커뮤니티 API
+    path('api/community/', include('apps.community.urls')),
+
 ]

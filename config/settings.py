@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'apps.profiles',
     'apps.portfolio',
     'apps.activity',
+    'apps.community',
 
     # REST API
     'rest_framework',
