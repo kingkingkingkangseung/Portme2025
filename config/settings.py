@@ -9,74 +9,44 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+# config/settings.py
+
 import os
 from dotenv import load_dotenv
-
 from pathlib import Path
+from datetime import timedelta
 
 load_dotenv()
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-c#s*l#)*x401bi1eo_)65t%#w$7_rcc_4#$7$ihfmvicte#26-'
-
-# SECURITY WARNING: don't run with debug turned on in production!
+SECRET_KEY = 'django-insecure-...'
 DEBUG = True
-
 ALLOWED_HOSTS = []
 
-#Auth 관련
+# SITE
 SITE_ID = 1
 
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
-]
-
-LOGIN_REDIRECT_URL = '/'
-
-SOCIALACCOUNT_PROVIDERS = {
-    #구글
-    'google': {
-        'APP': {
-            'GOOGLE_CLIENT_ID' : os.getenv("GOOGLE_CLIENT_ID"),
-            'GOOGLE_CLIENT_SECRET' : os.getenv("GOOGLE_CLIENT_SECRET"),
-            'key': ''
-        }
-    }
-}
-
-
-# Application definition
-
+# 앱 등록
 INSTALLED_APPS = [
-
-    #dj-rest-auth
+    # DRF + JWT
     'rest_framework',
     'rest_framework.authtoken',
-
     'dj_rest_auth',
     'dj_rest_auth.registration',
 
-    #AllOuth
-    'django.contrib.sites',  # allauth 필수
+    # allauth (소셜 로그인)
+    'django.contrib.sites',
     'allauth',
-    'allauth.account',  # 이메일/비밀번호 로그인용
-    'allauth.socialaccount',  # 소셜 로그인용
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 
-    'allauth.socialaccount.providers.google',  # 구글 로그인 지원
-
-    #apps
+    # 우리 앱
     'apps.user',
     'apps.portfolio',
     'apps.activity',
 
+    # Django 기본
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -93,20 +63,17 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
-    'allauth.account.middleware.AccountMiddleware'
+    'allauth.account.middleware.AccountMiddleware',
 ]
-
-ROOT_URLCONF = 'config.urls'
-
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',  # <- 반드시 이 값이어야 함
+        'DIRS': [BASE_DIR / 'templates'],  # 필요 없으면 []로 두셔도 됩니다
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.request',
+                'django.template.context_processors.debug',             # 디버그용(선택)
+                'django.template.context_processors.request',           # allauth, admin에 필요
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -114,12 +81,10 @@ TEMPLATES = [
     },
 ]
 
+ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+# DB
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -127,44 +92,62 @@ DATABASES = {
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
+# 언어·시간
+LANGUAGE_CODE = 'ko-kr'
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
+# Static / AutoField
 STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# 커스텀 유저 모델
+AUTH_USER_MODEL = 'user.User'
+
+# 인증 백엔드
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# DRF + SimpleJWT 설정
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+}
+
+# dj-rest-auth: JWT만 JSON으로 반환
+REST_AUTH = {
+    'USE_JWT': True,
+}
+
+# 회원가입 시 커스텀 시리얼라이저
+REST_AUTH_REGISTER_SERIALIZERS = {
+    'REGISTER_SERIALIZER': 'apps.user.serializers.RegisterSerializer'
+}
+
+# allauth 설정
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_REQUIRED     = True
+DEFAULT_FROM_EMAIL         = 'noreply@example.com'
+LOGIN_REDIRECT_URL         = '/'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'GOOGLE_CLIENT_ID':     os.getenv("GOOGLE_CLIENT_ID"),
+            'GOOGLE_CLIENT_SECRET': os.getenv("GOOGLE_CLIENT_SECRET"),
+            'key': ''
+        }
+    }
+}
+
+# allauth 어댑터
+ACCOUNT_ADAPTER = 'apps.user.adapters.CustomAccountAdapter'
