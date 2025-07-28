@@ -1,17 +1,22 @@
+import os
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-c#s*l#)*x401bi1eo_)65t%#w$7_rcc_4#$7$ihfmvicte#26-'
+SECRET_KEY = os.getenv(
+    'SECRET_KEY',
+    'django-insecure-c#s*l#)*x401bi1eo_)65t%#w$7_rcc_4#$7$ihfmvicte#26-'
+)
 
 DEBUG = True
-
 ALLOWED_HOSTS = []
 
-# ====================
-# Application definition
-# ====================
+SITE_ID = 1
+
 INSTALLED_APPS = [
     # Django 기본 앱
     'django.contrib.admin',
@@ -22,25 +27,24 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',  # allauth 필수
 
-    # 사용자 앱
+    # REST framework & auth
+    'rest_framework',
+    'rest_framework.authtoken',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+
+    # allauth (소셜 로그인)
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+
+    # 커스텀 앱
     'apps.user',
     'apps.profiles',
     'apps.portfolio',
     'apps.activity',
     'apps.community',
-
-    # REST API
-    'rest_framework',
-    'rest_framework.authtoken',
-
-    # allauth (소셜 로그인 포함)
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-
-    # dj-rest-auth
-    'dj_rest_auth',
-    'dj_rest_auth.registration',
 ]
 
 MIDDLEWARE = [
@@ -51,19 +55,18 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
-
-ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.request',  # allauth 필수
+                'django.template.context_processors.request',  # allauth, admin 필요
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -71,11 +74,9 @@ TEMPLATES = [
     },
 ]
 
+ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# ====================
-# Database
-# ====================
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -83,56 +84,28 @@ DATABASES = {
     }
 }
 
-# ====================
-# Password Validation
-# ====================
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# ====================
-# Internationalization
-# ====================
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'ko-kr'
+TIME_ZONE = 'Asia/Seoul'
 USE_I18N = True
 USE_TZ = True
 
-# ====================
-# Static files
-# ====================
 STATIC_URL = 'static/'
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ====================
-# Custom User Model
-# ====================
 AUTH_USER_MODEL = 'user.User'
 
-# ====================
-# allauth Settings
-# ====================
-SITE_ID = 1
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
 
-ACCOUNT_AUTHENTICATION_METHOD = 'username'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # 개발용. 실제 운영 땐 'mandatory' 로 바꾸기
-
-# ====================
-# DRF Settings
-# ====================
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -143,9 +116,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-# ====================
-# Simple JWT Settings
-# ====================
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -156,10 +126,32 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# ====================
-# dj-rest-auth + allauth 기본 설정 추가
-# ====================
+# dj-rest-auth: JWT 사용 및 커스텀 등록 시리얼라이저
+REST_AUTH = {
+    'USE_JWT': True,
+}
+REST_AUTH_REGISTER_SERIALIZERS = {
+    'REGISTER_SERIALIZER': 'apps.user.serializers.RegisterSerializer'
+}
+
+# allauth 설정
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = 'username'
 ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
+DEFAULT_FROM_EMAIL = 'noreply@example.com'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'GOOGLE_CLIENT_ID': os.getenv("GOOGLE_CLIENT_ID"),
+            'GOOGLE_CLIENT_SECRET': os.getenv("GOOGLE_CLIENT_SECRET"),
+            'key': ''
+        }
+    }
+}
+
+ACCOUNT_ADAPTER = 'apps.user.adapters.CustomAccountAdapter'

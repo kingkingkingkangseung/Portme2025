@@ -1,25 +1,43 @@
 from django.contrib import admin
 from django.urls import path, include
 
+from apps.user.views import (
+    GoogleLoginImplicit,
+    GoogleLoginCode,
+    CustomLoginView,
+    CustomRegisterView,
+)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # ✅ 로그인 / 로그아웃 / 토큰 갱신 등
-    path('dj-rest-auth/', include('dj_rest_auth.urls')),
+    # 1) Google Implicit Grant
+    path(
+        'api/auth/google/implicit/',
+        GoogleLoginImplicit.as_view(),
+        name='google_login_implicit'
+    ),
 
-    # ✅ 회원가입용 (지금은 안 쓸 수도 있지만 일단 포함)
-    path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
+    # 2) Google Authorization Code Grant
+    path(
+        'api/auth/google/code/',
+        GoogleLoginCode.as_view(),
+        name='google_login_code'
+    ),
 
-    # ✅ 프로필 등 메인 API들
+    # Custom login & registration (overrides default dj-rest-auth)
+    path('api/auth/login/', CustomLoginView.as_view(), name='rest_login'),
+    path('api/auth/registration/', CustomRegisterView.as_view(), name='rest_register'),
+
+    # dj-rest-auth endpoints (login/logout/token refresh)
+    path('api/auth/', include('dj_rest_auth.urls')),
+
+    # allauth social account URLs
+    path('api/social/', include('allauth.socialaccount.urls')),
+
+    # Profile, Activity, Portfolio, Community APIs
     path('api/profiles/', include('apps.profiles.urls')),
-
-    # ✅ 활동 API
     path('api/activities/', include('apps.activity.urls')),
-
-    # ✅ 포트폴리오 API
     path('api/portfolios/', include('apps.portfolio.urls')),
-
-    # ✅ 커뮤니티 API
     path('api/community/', include('apps.community.urls')),
-
 ]
