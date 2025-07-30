@@ -157,7 +157,7 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 
 # allauth settings
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_REQUIRED = False      # 이전 True → False로 변경
 ACCOUNT_AUTHENTICATION_METHOD = 'username'
 ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
@@ -176,3 +176,10 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 ACCOUNT_ADAPTER = 'apps.user.adapters.CustomAccountAdapter'
+
+# ----------------------------------------
+# 아래 3줄을 꼭 추가해 주세요 (이메일 발송 완전 비활성화)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+# ----------------------------------------
