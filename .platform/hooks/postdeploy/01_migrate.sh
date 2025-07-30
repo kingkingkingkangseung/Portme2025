@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# ───────────────────────────────────────────────────────────────
-# EB Python 3.13 on Amazon Linux 2023:
-# 배포 후 자동으로 마이그레이션을 실행해 줍니다.
-# ───────────────────────────────────────────────────────────────
+
+# RDS, EB 환경변수 로딩
+source /opt/elasticbeanstalk/support/envvars
 
 # 앱 코드가 체크아웃된 디렉터리로 이동
 cd /var/app/current
@@ -13,5 +12,5 @@ source /var/app/venv/*/bin/activate
 # 마이그레이션 실행
 python manage.py migrate --noinput
 
-# (필요시) static files collect
+# 필요하다면 스태틱 수집
 # python manage.py collectstatic --noinput
