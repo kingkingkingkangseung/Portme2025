@@ -1,1 +1,1 @@
-web: gunicorn config.wsgi:application --bind :$PORT
+web: gunicorn config.wsgi:application --bind :8000
