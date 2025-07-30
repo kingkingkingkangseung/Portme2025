@@ -15,14 +15,20 @@ SECRET_KEY = os.getenv(
 )
 
 # Debug mode
-DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() in ('true', '1')
+# DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() in ('true', '1')
+
+# Debug mode (임시로 켜기)
+DEBUG = True
 
 # Hosts
-ALLOWED_HOSTS = [
-    'portme-env.eba-miwg8wpm.ap-northeast-2.elasticbeanstalk.com',
-    'localhost',
-    '127.0.0.1',
-]
+#ALLOWED_HOSTS = [
+#    'portme-env.eba-miwg8wpm.ap-northeast-2.elasticbeanstalk.com',
+#    'localhost',
+#    '127.0.0.1',
+#]
+
+# 모든 호스트 허용 (디버깅용)
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 SITE_ID = 1
