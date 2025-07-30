@@ -2,6 +2,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.http import HttpResponse
+from apps.user.views import (GoogleLoginImplicit, GoogleLoginCode, CustomLoginView, CustomRegisterView)
 
 # 헬스체크용 뷰
 def health(request):
