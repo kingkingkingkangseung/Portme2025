@@ -8,31 +8,24 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Secret Key
-SECRET_KEY = os.getenv(
-    'SECRET_KEY',
-    'django-insecure-c#s*l#)*x401bi1eo_)65t%#w$7_rcc_4#$7$ihfmvicte#26-'
-)
+# ------------------------------------------------------------------------------
+# SECURITY
+# ------------------------------------------------------------------------------
+SECRET_KEY = os.getenv('SECRET_KEY')
+DEBUG = False  # 절대 True로 두지 마세요!
 
-# Debug mode
-# DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() in ('true', '1')
+ALLOWED_HOSTS = [
+    'portme-env.eba-miwg8wpm.ap-northeast-2.elasticbeanstalk.com',
+    'www.your-production-domain.com',
+]
 
-# Debug mode (임시로 켜기)
-DEBUG = True
-
-# Hosts
-#ALLOWED_HOSTS = [
-#    'portme-env.eba-miwg8wpm.ap-northeast-2.elasticbeanstalk.com',
-#    'localhost',
-#    '127.0.0.1',
-#]
-
-# 모든 호스트 허용 (디버깅용)
-ALLOWED_HOSTS = ['*']
-
+# ------------------------------------------------------------------------------
 # Application definition
+# ------------------------------------------------------------------------------
 SITE_ID = 1
+
 INSTALLED_APPS = [
+    # Django 기본 앱
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,16 +34,17 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
+    # 서드파티
     'rest_framework',
     'rest_framework.authtoken',
     'dj_rest_auth',
     'dj_rest_auth.registration',
-
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
 
+    # 프로젝트 앱
     'apps.user',
     'apps.profiles',
     'apps.portfolio',
@@ -60,6 +54,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static files 서빙용
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -69,46 +64,26 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
 ]
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
 ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database: PostgreSQL on EB via env vars, fallback to SQLite for local
-if os.getenv('DB_HOST'):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME'),
-            'USER': os.getenv('DB_USER'),
-            'PASSWORD': os.getenv('DB_PASS'),
-            'HOST': os.getenv('DB_HOST'),
-            'PORT': os.getenv('DB_PORT', '5432'),
-        }
+# ------------------------------------------------------------------------------
+# Database (PostgreSQL on RDS)
+# ------------------------------------------------------------------------------
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASS'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
+# ------------------------------------------------------------------------------
 # Password validation
+# ------------------------------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -116,26 +91,60 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# ------------------------------------------------------------------------------
 # Internationalization
+# ------------------------------------------------------------------------------
 LANGUAGE_CODE = 'ko-kr'
 TIME_ZONE = 'Asia/Seoul'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# ------------------------------------------------------------------------------
+# Static files (CSS, JavaScript, Images)
+# ------------------------------------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+# 로컬 개발 시:
+# STATICFILES_DIRS = [BASE_DIR / 'static']
+# 프로덕션에서 S3 연동하려면:
+# STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
+# ------------------------------------------------------------------------------
+# Default primary key field type
+# ------------------------------------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Authentication
+# ------------------------------------------------------------------------------
+# Authentication & Allauth
+# ------------------------------------------------------------------------------
 AUTH_USER_MODEL = 'user.User'
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# REST Framework & JWT
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_AUTHENTICATION_METHOD = 'username'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+            'secret':    os.getenv('GOOGLE_CLIENT_SECRET'),
+            'key':       ''
+        }
+    }
+}
+
+ACCOUNT_ADAPTER = 'apps.user.adapters.CustomAccountAdapter'
+DEFAULT_FROM_EMAIL = 'noreply@your-production-domain.com'
+
+# ------------------------------------------------------------------------------
+# Django REST Framework & JWT
+# ------------------------------------------------------------------------------
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -147,13 +156,13 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'ACCESS_TOKEN_LIFETIME':  timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': False,
+    'ROTATE_REFRESH_TOKENS':  False,
     'BLACKLIST_AFTER_ROTATION': True,
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
-    'AUTH_HEADER_TYPES': ('Bearer',),
+    'ALGORITHM':              'HS256',
+    'SIGNING_KEY':            SECRET_KEY,
+    'AUTH_HEADER_TYPES':      ('Bearer',),
 }
 
 REST_AUTH = {'USE_JWT': True}
@@ -161,31 +170,35 @@ REST_AUTH_REGISTER_SERIALIZERS = {
     'REGISTER_SERIALIZER': 'apps.user.serializers.RegisterSerializer'
 }
 
-# allauth settings
-ACCOUNT_EMAIL_VERIFICATION = 'none'
-ACCOUNT_EMAIL_REQUIRED = False      # 이전 True → False로 변경
-ACCOUNT_AUTHENTICATION_METHOD = 'username'
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
-DEFAULT_FROM_EMAIL = 'noreply@example.com'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+# ------------------------------------------------------------------------------
+# Email (Production: SMTP / Development: Console)
+# ------------------------------------------------------------------------------
+EMAIL_BACKEND = os.getenv(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.smtp.EmailBackend'
+)
+# SMTP 설정 예시 (SES 등)
+# EMAIL_HOST = os.getenv('EMAIL_HOST')
+# EMAIL_PORT = os.getenv('EMAIL_PORT')
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'GOOGLE_CLIENT_ID': os.getenv('GOOGLE_CLIENT_ID'),
-            'GOOGLE_CLIENT_SECRET': os.getenv('GOOGLE_CLIENT_SECRET'),
-            'key': ''
-        }
-    }
+# 개발 시 콘솔로 메일 보기
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# ------------------------------------------------------------------------------
+# Logging (간단 예시)
+# ------------------------------------------------------------------------------
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {'class':'logging.StreamHandler'},
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+    },
 }
-
-ACCOUNT_ADAPTER = 'apps.user.adapters.CustomAccountAdapter'
-
-# ----------------------------------------
-# 아래 3줄을 꼭 추가해 주세요 (이메일 발송 완전 비활성화)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-ACCOUNT_EMAIL_REQUIRED = False
-ACCOUNT_EMAIL_VERIFICATION = 'none'
-# ----------------------------------------
