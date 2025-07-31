@@ -1,0 +1,6 @@
+# .platform/packages.yaml
+packages:
+  yum:
+    postgresql-devel: []   # pg_config 포함
+    gcc: []                # C 컴파일러
+    python3-devel: []      # Python 헤더
