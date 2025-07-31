@@ -14,11 +14,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = False  # 절대 True로 두지 마세요!
 
-ALLOWED_HOSTS = [
-    'portme-env.eba-miwg8wpm.ap-northeast-2.elasticbeanstalk.com',
-    'www.your-production-domain.com',
-]
-
+#ALLOWED_HOSTS = [
+#    'portme-env.eba-miwg8wpm.ap-northeast-2.elasticbeanstalk.com',
+#    'www.your-production-domain.com',
+#]
+ALLOWED_HOSTS = ['*']
 # ------------------------------------------------------------------------------
 # Application definition
 # ------------------------------------------------------------------------------
