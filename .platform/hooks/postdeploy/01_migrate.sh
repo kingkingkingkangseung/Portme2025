@@ -13,4 +13,4 @@ source /var/app/venv/*/bin/activate
 python manage.py migrate --noinput
 
 # 필요하다면 스태틱 수집
-# python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput
