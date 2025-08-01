@@ -2,4 +2,4 @@ packages:
   yum:
     postgresql-devel: []
     gcc: []
-    python3.13-devel: []
+    python3-devel: []
