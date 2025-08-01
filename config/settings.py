@@ -8,22 +8,17 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 # SECURITY
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = False  # 절대 True로 두지 마세요!
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+ALLOWED_HOSTS = ['*']  # 배포 시에는 도메인만 허용하세요
 
-#ALLOWED_HOSTS = [
-#    'portme-env.eba-miwg8wpm.ap-northeast-2.elasticbeanstalk.com',
-#    'www.your-production-domain.com',
-#]
-ALLOWED_HOSTS = ['*']
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 # Application definition
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 SITE_ID = 1
-
 INSTALLED_APPS = [
     # Django 기본 앱
     'django.contrib.admin',
@@ -54,7 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static files 서빙용
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static files 서빙
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -67,23 +62,42 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
+# Templates (admin를 위해 반드시 필요)
+# -------------------------------------------------------------------
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],  # 프로젝트 전체 템플릿용 (없으면 []로 두세요)
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',   # admin 필수
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+# -------------------------------------------------------------------
 # Database (PostgreSQL on RDS)
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
+        'ENGINE':   'django.db.backends.postgresql',
+        'NAME':     os.getenv('DB_NAME'),
+        'USER':     os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASS'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+        'HOST':     os.getenv('DB_HOST'),
+        'PORT':     os.getenv('DB_PORT', '5432'),
     }
 }
 
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 # Password validation
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -91,43 +105,42 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 # Internationalization
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 LANGUAGE_CODE = 'ko-kr'
 TIME_ZONE = 'Asia/Seoul'
 USE_I18N = True
 USE_TZ = True
 
-# ------------------------------------------------------------------------------
-# Static files (CSS, JavaScript, Images)
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
+# Static files
+# -------------------------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-# 로컬 개발 시:
-# STATICFILES_DIRS = [BASE_DIR / 'static']
-# 프로덕션에서 S3 연동하려면:
-# STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# STATICFILES_DIRS = [BASE_DIR / 'static']  # 로컬 개발
+# STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'  # S3 연동
 
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 # Default primary key field type
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 # Authentication & Allauth
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 AUTH_USER_MODEL = 'user.User'
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-ACCOUNT_EMAIL_REQUIRED = True
+# ⇒ deprecated 경고를 제거하려면 아래 두 줄로 교체
+ACCOUNT_LOGIN_METHODS     = {'username'}
+ACCOUNT_SIGNUP_FIELDS     = ['username*', 'email*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-ACCOUNT_AUTHENTICATION_METHOD = 'username'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL        = '/'
+LOGOUT_REDIRECT_URL       = '/'
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -139,12 +152,12 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-ACCOUNT_ADAPTER = 'apps.user.adapters.CustomAccountAdapter'
+ACCOUNT_ADAPTER    = 'apps.user.adapters.CustomAccountAdapter'
 DEFAULT_FROM_EMAIL = 'noreply@your-production-domain.com'
 
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 # Django REST Framework & JWT
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -170,32 +183,24 @@ REST_AUTH_REGISTER_SERIALIZERS = {
     'REGISTER_SERIALIZER': 'apps.user.serializers.RegisterSerializer'
 }
 
-# ------------------------------------------------------------------------------
-# Email (Production: SMTP / Development: Console)
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
+# Email (Prod: SMTP / Dev: Console)
+# -------------------------------------------------------------------
 EMAIL_BACKEND = os.getenv(
     'EMAIL_BACKEND',
     'django.core.mail.backends.smtp.EmailBackend'
 )
-# SMTP 설정 예시 (SES 등)
-# EMAIL_HOST = os.getenv('EMAIL_HOST')
-# EMAIL_PORT = os.getenv('EMAIL_PORT')
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-# EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-
-# 개발 시 콘솔로 메일 보기
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# ------------------------------------------------------------------------------
-# Logging (간단 예시)
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------
+# Logging
+# -------------------------------------------------------------------
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'console': {'class':'logging.StreamHandler'},
+        'console': {'class': 'logging.StreamHandler'},
     },
     'root': {
         'handlers': ['console'],
