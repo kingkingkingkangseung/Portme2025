@@ -1,6 +1,8 @@
 """
 Django settings for config project.
 """
+import pymysql
+pymysql.install_as_MySQLdb()
 
 import os
 from dotenv import load_dotenv
@@ -91,8 +93,15 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # ====================
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'portme_db',  # RDS DB 식별자 이름
+        'USER': 'admin',      # RDS 마스터 사용자명
+        'PASSWORD': 'jhdh0928',  # 마스터 암호
+        'HOST': 'portme-db.cn020ei0suoy.ap-northeast-2.rds.amazonaws.com',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+        }
     }
 }
 
@@ -199,4 +208,5 @@ REST_AUTH = {
 REST_AUTH_REGISTER_SERIALIZERS = {
     'REGISTER_SERIALIZER': 'apps.user.serializers.RegisterSerializer'
 }
+
 
