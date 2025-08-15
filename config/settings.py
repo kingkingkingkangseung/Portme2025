@@ -145,8 +145,18 @@ LOGOUT_REDIRECT_URL = '/'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'GOOGLE_CLIENT_ID': os.getenv("GOOGLE_CLIENT_ID"),
-            'GOOGLE_CLIENT_SECRET': os.getenv("GOOGLE_CLIENT_SECRET"),
+            'client_id': os.getenv("GOOGLE_CLIENT_ID"),
+            'secret': os.getenv("GOOGLE_CLIENT_SECRET"),
+            'key': ''
+        },
+        "SCOPE": ["openid", "email", "profile"],
+        "AUTH_PARAMS": {"access_type": "offline", "prompt": "consent"},
+    },
+
+     'github': {
+        'APP': {
+            'client_id': os.getenv("GITHUB_CLIENT_ID"),
+            'secret': os.getenv("GITHUB_CLIENT_SECRET"),
             'key': ''
         }
     }
