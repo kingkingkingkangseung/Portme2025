@@ -2,6 +2,7 @@ from django.urls import path
 from .views import (
     ActivityListCreateAPIView, ActivityDetailAPIView,
     ActivityMemoListCreateAPIView, ActivityMemoDetailAPIView,
+    ActivityCategoryListAPIView, TagListAPIView,
 )
 
 urlpatterns = [
@@ -11,4 +12,8 @@ urlpatterns = [
     # 메모
     path("<int:activity_id>/memos/",          ActivityMemoListCreateAPIView.as_view(), name="activity-memo-list"),
     path("<int:activity_id>/memos/<int:pk>/", ActivityMemoDetailAPIView.as_view(),     name="activity-memo-detail"),
+
+    # 카테고리/태그
+    path("categories/", ActivityCategoryListAPIView.as_view(), name="activity-category-list"),
+    path("tags/",       TagListAPIView.as_view(),             name="tag-list"),
 ]
