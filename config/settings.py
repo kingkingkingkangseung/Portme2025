@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.github',
 
     # 사용자 앱
     'apps.user',
@@ -134,13 +135,17 @@ AUTHENTICATION_BACKENDS = [
 # allauth Settings
 # ====================
 ACCOUNT_AUTHENTICATION_METHOD = 'username'
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
 DEFAULT_FROM_EMAIL = 'noreply@example.com'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+SOCIALACCOUNT_EMAIL_REQUIRED = True        # 소셜 로그인에서는 없어도 통과(중요)
+SOCIALACCOUNT_QUERY_EMAIL = True            # GitHub에서 email API 조회(중요)
+SOCIALACCOUNT_AUTO_SIGNUP = True  
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -158,7 +163,8 @@ SOCIALACCOUNT_PROVIDERS = {
             'client_id': os.getenv("GITHUB_CLIENT_ID"),
             'secret': os.getenv("GITHUB_CLIENT_SECRET"),
             'key': ''
-        }
+        },
+        "SCOPE": ["read:user", "user:email"],
     }
 }
 
