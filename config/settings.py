@@ -2,27 +2,23 @@
 Django settings for config project.
 """
 import os
-from dotenv import load_dotenv
 from pathlib import Path
 from datetime import timedelta
-
-# ── MySQL 드라이버(pymysql 대체) ──
-import pymysql
-pymysql.install_as_MySQLdb()
+from dotenv import load_dotenv
 
 # ── ENV 로드 ──
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ── 보안 키/디버그: .env 로 관리 ──
+# ── 보안/디버그 ──
 SECRET_KEY = os.getenv("SECRET_KEY", "!!-DEV-ONLY-CHANGE-ME!!")
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 # ── 호스트/CSRF ──
-# 주의: 'Localhost' ❌ -> 'localhost' ✅ (소문자)
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if h.strip()]
-
+ALLOWED_HOSTS = [
+    h.strip() for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if h.strip()
+]
 CSRF_TRUSTED_ORIGINS = []
 for h in ALLOWED_HOSTS:
     if h not in ("localhost", "127.0.0.1"):
@@ -32,18 +28,21 @@ for h in ALLOWED_HOSTS:
 # Application definition
 # ====================
 SITE_ID = 1
-
 INSTALLED_APPS = [
+    # Django
     'django.contrib.admin', 'django.contrib.auth', 'django.contrib.contenttypes',
     'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles',
     'django.contrib.sites',
 
+    # DRF + Auth
     'rest_framework', 'rest_framework.authtoken',
     'dj_rest_auth', 'dj_rest_auth.registration',
 
+    # allauth
     'allauth', 'allauth.account', 'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
 
+    # Apps
     'apps.user', 'apps.profiles', 'apps.portfolio', 'apps.activity', 'apps.community',
 ]
 
@@ -58,29 +57,33 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
 ]
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
+TEMPLATES = [{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [BASE_DIR / 'templates'],
+    'APP_DIRS': True,
+    'OPTIONS': {
+        'context_processors': [
+            'django.template.context_processors.debug',
+            'django.template.context_processors.request',
+            'django.contrib.auth.context_processors.auth',
+            'django.contrib.messages.context_processors.messages',
+        ],
     },
-]
+}]
 
 ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ====================
-# Database (RDS MySQL ↔ 로컬 SQLite 자동 전환)
+# Database (RDS ↔ SQLite 자동 전환)
 # ====================
-if os.getenv("DB_HOST"):  # .env에 DB_HOST가 있으면 MySQL(RDS)
+USE_MYSQL = bool(os.getenv("DB_HOST"))  # .env에 DB_HOST 있으면 MySQL 사용
+
+if USE_MYSQL:
+    # pymysql은 MySQL 쓸 때만 import (로컬에서 에러 방지)
+    import pymysql  # type: ignore
+    pymysql.install_as_MySQLdb()
+
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -98,10 +101,7 @@ if os.getenv("DB_HOST"):  # .env에 DB_HOST가 있으면 MySQL(RDS)
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+        'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}
     }
 
 # ====================
@@ -115,19 +115,18 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # ====================
-# Internationalization
+# I18N
 # ====================
 LANGUAGE_CODE = 'ko-kr'
 TIME_ZONE = os.getenv("TIME_ZONE", "Asia/Seoul")
 USE_I18N = True
-USE_TZ = True
+USE_TZ = True  # DB에는 UTC로 저장, TIME_ZONE 기준으로 표시
 
 # ====================
 # Static / Media
 # ====================
-# ← collectstatic 오류 해결 + Nginx 서빙 표준 경로
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / 'staticfiles'   # collectstatic 타겟
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -135,12 +134,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ====================
-# Custom User Model
+# User Model
 # ====================
 AUTH_USER_MODEL = 'user.User'
 
 # ====================
-# Authentication Backends
+# Auth Backends
 # ====================
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -148,7 +147,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # ====================
-# allauth Settings (dongha 동작 유지)
+# allauth
 # ====================
 ACCOUNT_AUTHENTICATION_METHOD = 'username'
 ACCOUNT_EMAIL_REQUIRED = True
@@ -168,7 +167,6 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     }
 }
-
 ACCOUNT_ADAPTER = 'apps.user.adapters.CustomAccountAdapter'
 
 # ====================
@@ -183,7 +181,6 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -193,7 +190,6 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
-
 REST_AUTH = {'USE_JWT': True}
 REST_AUTH_REGISTER_SERIALIZERS = {
     'REGISTER_SERIALIZER': 'apps.user.serializers.RegisterSerializer'
