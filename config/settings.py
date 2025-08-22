@@ -135,7 +135,7 @@ AUTHENTICATION_BACKENDS = [
 # allauth Settings
 # ====================
 ACCOUNT_AUTHENTICATION_METHOD = 'username'
-ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
@@ -153,6 +153,7 @@ SOCIALACCOUNT_PROVIDERS = {
             'client_id': os.getenv("GOOGLE_CLIENT_ID"),
             'secret': os.getenv("GOOGLE_CLIENT_SECRET"),
             'key': ''
+            
         },
         "SCOPE": ["openid", "email", "profile"],
         "AUTH_PARAMS": {"access_type": "offline", "prompt": "consent"},

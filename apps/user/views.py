@@ -54,7 +54,7 @@ class GoogleLoginCode(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
     client_class  = FixedOAuth2Client
     # 콘솔 Authorized redirect URIs 와 1자도 다르면 안 됨(끝 슬래시 포함)
-    callback_url  = "http://localhost:8000/api/auth/google/code/"
+    callback_url  = "http://localhost:8000/api/auth/google/callback/"
 
     def get_response(self):
         refresh = RefreshToken.for_user(self.user)
