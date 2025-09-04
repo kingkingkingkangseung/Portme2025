@@ -5,11 +5,10 @@ from django.http import JsonResponse
 
 # user.views에서 필요한 뷰만 import
 from apps.user.views import (
-    GoogleLoginCode,
-    GitHubLoginCode,
     CustomLoginView,
     CustomRegisterView,
-
+    GoogleAuthStart, GoogleAuthCallback,
+    GitHubAuthStart, GitHubAuthCallback,
 )
 
 # 헬스체크용 뷰
@@ -40,13 +39,13 @@ urlpatterns = [
     # ✅ allauth 라우트 등록 (필수)
     path("accounts/", include("allauth.urls")),  # ← 이거 추가
 
-    # Google OAuth
-    path("api/auth/google/code/", GoogleLoginCode.as_view(), name="google_login_code"),
-    path("api/auth/google/callback/", google_callback_echo, name="google_callback_echo"),
+    #GOOGLE
+    path("api/auth/google/login/", GoogleAuthStart.as_view(), name="google_auth_start"),
+    path("api/auth/google/callback/", GoogleAuthCallback.as_view(), name="google_auth_callback"),
 
-    # GitHub OAuth
-    path("api/auth/github/code/", GitHubLoginCode.as_view(), name="github_login_code"),
-    path("api/auth/github/callback/", oauth_callback_echo, name="github_callback_echo"),
+    #GITHUB
+    path("api/auth/github/login/", GitHubAuthStart.as_view(), name="github_auth_start"),
+    path("api/auth/github/callback/", GitHubAuthCallback.as_view(), name="github_auth_callback"),
 
     # 로그인/회원가입 + dj-rest-auth
     path("api/auth/login/", CustomLoginView.as_view(), name="rest_login"),

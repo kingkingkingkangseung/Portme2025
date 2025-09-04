@@ -150,24 +150,37 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': os.getenv("GOOGLE_CLIENT_ID"),
-            'secret': os.getenv("GOOGLE_CLIENT_SECRET"),
+            'client_id': "GOOGLE_CLIENT_ID",
+            'secret': "GOOGLE_CLIENT_SECRET",
             'key': ''
-            
         },
         "SCOPE": ["openid", "email", "profile"],
-        "AUTH_PARAMS": {"access_type": "offline", "prompt": "consent"},
+        "AUTH_PARAMS": {
+            "access_type": "offline",
+            "prompt": "consent"
+        },
+        "OAUTH_PKCE_ENABLED": True,
+        "REDIRECT_URI": "GOOGLE_REDIRECT_URI",
     },
 
-     'github': {
+    'github': {
         'APP': {
-            'client_id': os.getenv("GITHUB_CLIENT_ID"),
-            'secret': os.getenv("GITHUB_CLIENT_SECRET"),
+            'client_id': "GITHUB_CLIENT_ID",
+            'secret': "GITHUB_CLIENT_SECRET",
             'key': ''
         },
         "SCOPE": ["read:user", "user:email"],
+        "REDIRECT_URI": "GITHUB_REDIRECT_URI",
     }
 }
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
+
+GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
+GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI")
 
 ACCOUNT_ADAPTER = 'apps.user.adapters.CustomAccountAdapter'
 
