@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     # allauth
     'allauth', 'allauth.account', 'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.github',
 
     # Apps
     'apps.user', 'apps.profiles', 'apps.portfolio', 'apps.activity', 'apps.community',
@@ -80,7 +81,6 @@ WSGI_APPLICATION = 'config.wsgi.application'
 USE_MYSQL = bool(os.getenv("DB_HOST"))  # .env에 DB_HOST 있으면 MySQL 사용
 
 if USE_MYSQL:
-    # pymysql은 MySQL 쓸 때만 import (로컬에서 에러 방지)
     import pymysql  # type: ignore
     pymysql.install_as_MySQLdb()
 
@@ -120,13 +120,13 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'ko-kr'
 TIME_ZONE = os.getenv("TIME_ZONE", "Asia/Seoul")
 USE_I18N = True
-USE_TZ = True  # DB에는 UTC로 저장, TIME_ZONE 기준으로 표시
+USE_TZ = True
 
 # ====================
 # Static / Media
 # ====================
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'   # collectstatic 타겟
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -158,15 +158,37 @@ DEFAULT_FROM_EMAIL = 'noreply@example.com'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'GOOGLE_CLIENT_ID': os.getenv("GOOGLE_CLIENT_ID"),
-            'GOOGLE_CLIENT_SECRET': os.getenv("GOOGLE_CLIENT_SECRET"),
+            'client_id': os.getenv("GOOGLE_CLIENT_ID"),
+            'secret': os.getenv("GOOGLE_CLIENT_SECRET"),
             'key': ''
-        }
+        },
+        "SCOPE": ["openid", "email", "profile"],
+        "AUTH_PARAMS": {
+            "access_type": "offline",
+            "prompt": "consent"
+        },
+        "OAUTH_PKCE_ENABLED": True,
+        "REDIRECT_URI": os.getenv("GOOGLE_REDIRECT_URI"),
+    },
+
+    'github': {
+        'APP': {
+            'client_id': os.getenv("GITHUB_CLIENT_ID"),
+            'secret': os.getenv("GITHUB_CLIENT_SECRET"),
+            'key': ''
+        },
+        "SCOPE": ["read:user", "user:email"],
+        "REDIRECT_URI": os.getenv("GITHUB_REDIRECT_URI"),
     }
 }
+
 ACCOUNT_ADAPTER = 'apps.user.adapters.CustomAccountAdapter'
 
 # ====================
