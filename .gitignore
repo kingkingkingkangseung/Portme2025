@@ -65,3 +65,13 @@ env/
 
 
 *.log
+
+echo "*.pyc" >> .gitignore
+echo "__pycache__/" >> .gitignore
+
+__pycache__/
+*.pyc
+
+
+staticfiles/
+media/
