@@ -66,7 +66,7 @@ class ActivitySerializer(serializers.ModelSerializer):
             "primary_tag_ids", "secondary_tag_ids",
             "roles", "role_items",
             "created_at", "updated_at",
-            "memos",
+            "memos", "posts",
         ]
         read_only_fields = [
             "id", "created_at", "updated_at",
