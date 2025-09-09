@@ -1,6 +1,6 @@
 # apps/community/serializers.py
 from rest_framework import serializers
-from .models import Post, Comment, Retro       # ✅ Retro import
+from .models import Post, Comment, Retro
 from apps.activity.models import Tag, Activity
 
 # ── Nested serializers (읽기용) ─────────────────────────────────────
@@ -85,7 +85,7 @@ class PostDetailSerializer(serializers.ModelSerializer):
             "visibility",
             "tags", "tag_ids",
             "activities", "activity_ids",
-            "retro", "retro_input",                # ✅ 추가
+            "retro", "retro_input",
             "user_name",
             "likes_count", "scraps_count",
             "view_count", "created_at", "updated_at",
@@ -98,25 +98,26 @@ class PostDetailSerializer(serializers.ModelSerializer):
             "comments", "tags", "activities", "retro",
         ]
 
-    # 🔎 회고 유효성: type=retro면 retro_input 필수(최소한 retro_type & date)
+    # 🔎 회고 유효성: 생성(POST)일 때만 retro_type/date 필수
     def validate(self, attrs):
         req = self.context.get("request")
         method = req.method if req else None
 
-        # 생성 시에는 attrs에, 수정 시에는 partial일 수 있어서 유연하게 체크
         t = attrs.get("type") or getattr(getattr(self, "instance", None), "type", None)
 
         if t == "retro":
             retro_payload = attrs.get("retro_input")
             if method == "POST" and not retro_payload:
                 raise serializers.ValidationError({"retro_input": "회고 데이터가 필요합니다."})
+
             if retro_payload:
-                if not retro_payload.get("retro_type"):
-                    raise serializers.ValidationError({"retro_input.retro_type": "필수입니다. (KPT|AAR)"})
-                if not retro_payload.get("date"):
-                    raise serializers.ValidationError({"retro_input.date": "필수입니다. (YYYY-MM-DD)"})
+                # ✅ POST일 때만 필수 체크
+                if method == "POST":
+                    if not retro_payload.get("retro_type"):
+                        raise serializers.ValidationError({"retro_input.retro_type": "필수입니다. (KPT|AAR)"})
+                    if not retro_payload.get("date"):
+                        raise serializers.ValidationError({"retro_input.date": "필수입니다. (YYYY-MM-DD)"})
         else:
-            # article/question/review 인 경우에는 retro_input이 와도 무시
             attrs.pop("retro_input", None)
 
         return attrs
@@ -133,7 +134,6 @@ class PostDetailSerializer(serializers.ModelSerializer):
         if act_objs:
             post.activities.set(act_objs)
 
-        # ✅ type=retro 이면 Retro 생성
         if post.type == "retro" and retro_payload:
             Retro.objects.create(post=post, **retro_payload)
 
@@ -151,7 +151,6 @@ class PostDetailSerializer(serializers.ModelSerializer):
         if act_objs is not None:
             post.activities.set(act_objs)
 
-        # ✅ retro 갱신/생성/삭제
         if post.type == "retro":
             if retro_payload:
                 if hasattr(post, "retro"):
@@ -161,7 +160,6 @@ class PostDetailSerializer(serializers.ModelSerializer):
                 else:
                     Retro.objects.create(post=post, **retro_payload)
         else:
-            # 타입이 retro가 아니면 레트로 레코드 제거(원치 않으면 주석)
             if hasattr(post, "retro"):
                 post.retro.delete()
 
