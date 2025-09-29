@@ -85,3 +85,31 @@ class ActivityMemo(models.Model):
 
     def __str__(self):
         return f"메모 #{self.pk} - {self.activity.title}"
+
+
+# =========================
+# 📌 새로운 모델들
+# =========================
+class Award(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="awards")
+    awards_name = models.CharField("수상명", max_length=200)
+    awards_grade = models.CharField("등급/수상내역", max_length=100, blank=True)
+    achievement_date = models.DateField("수상일자")
+    description = models.TextField("설명", blank=True)
+    attachment = models.FileField("첨부파일", upload_to="award_attachments/", blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.awards_name} ({self.user.username})"
+
+
+class Certification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="certifications")
+    c_name = models.CharField("자격증명", max_length=200)
+    achievement_date = models.DateField("취득일자")
+    expiration_date = models.DateField("만료일자", null=True, blank=True)
+    issuer = models.CharField("발급기관", max_length=200, blank=True)
+    description = models.TextField("설명", blank=True)
+    attachment = models.FileField("첨부파일", upload_to="certification_attachments/", blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.c_name} ({self.user.username})"

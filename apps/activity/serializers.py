@@ -1,7 +1,10 @@
 from rest_framework import serializers
-from .models import Activity, ActivityMemo, ActivityCategory, Tag, ActivityRole
+from .models import (
+    Activity, ActivityMemo, ActivityCategory, Tag,
+    ActivityRole, Award, Certification
+)
 
-
+# ---- 기본 ----
 class ActivityCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivityCategory
@@ -27,11 +30,12 @@ class ActivityRoleSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "count"]
 
 
+# ---- Activity ----
 class ActivitySerializer(serializers.ModelSerializer):
     memos = ActivityMemoSerializer(many=True, read_only=True)
+    roles = ActivityRoleSerializer(many=True, read_only=True)
     category = ActivityCategorySerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    roles = ActivityRoleSerializer(many=True, read_only=True)
     primary_tags = TagSerializer(many=True, read_only=True)
     secondary_tags = TagSerializer(many=True, read_only=True)
 
@@ -66,7 +70,7 @@ class ActivitySerializer(serializers.ModelSerializer):
             "primary_tag_ids", "secondary_tag_ids",
             "roles", "role_items",
             "created_at", "updated_at",
-            "memos", "posts",
+            "memos",
         ]
         read_only_fields = [
             "id", "created_at", "updated_at",
@@ -111,3 +115,18 @@ class ActivitySerializer(serializers.ModelSerializer):
         self._save_tags(activity, validated_data)
         self._save_roles(activity, validated_data)
         return activity
+
+
+# ---- Award / Certification ----
+class AwardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Award
+        fields = "__all__"
+        read_only_fields = ["id", "user"]
+
+
+class CertificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Certification
+        fields = "__all__"
+        read_only_fields = ["id", "user"]

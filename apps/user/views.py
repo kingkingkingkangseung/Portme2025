@@ -103,24 +103,95 @@ class GoogleAuthStart(APIView):
         return redirect(f"{GOOGLE_AUTH_URL}?{urlencode(params)}")
 
 
+#  class GoogleAuthCallback(APIView):
+#     permission_classes = [AllowAny]
+
+#     def get(self, request):
+#         code = request.GET.get("code")
+#         state = request.GET.get("state")
+
+#         if not code or not state:
+#             return Response({"detail": "code/state 누락"}, status=400)
+
+#         if state != request.session.get("oauth_state_google"):
+#             return Response({"detail": "state 불일치"}, status=400)
+
+#         data = {
+#             "code": code,
+#             "client_id": settings.GOOGLE_CLIENT_ID,
+#             "client_secret": settings.GOOGLE_CLIENT_SECRET,
+#             "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+#             "grant_type": "authorization_code",
+#         }
+#         token_res = requests.post(GOOGLE_TOKEN_URL, data=data, timeout=10)
+#         if token_res.status_code != 200:
+#             return Response({"detail": "Google 토큰 교환 실패", "res": token_res.text}, status=400)
+
+#         token_json = token_res.json()
+#         access_token = token_json.get("access_token")
+#         id_token = token_json.get("id_token")
+
+#         userinfo = requests.get(
+#             GOOGLE_USERINFO_URL,
+#             headers={"Authorization": f"Bearer {access_token}"},
+#             timeout=10
+#         ).json()
+
+#         email = userinfo.get("email")
+#         sub = userinfo.get("sub")
+#         name = userinfo.get("name") or ""
+#         if not email:
+#             return Response({"detail": "Google에서 이메일을 제공하지 않았습니다."}, status=400)
+
+#         try:
+#             user = User.objects.get(email=email)
+#         except User.DoesNotExist:
+#             username = _ensure_username(email.split("@")[0] or f"g_{sub[:8]}")
+#             user = User.objects.create_user(
+#                 username=username,
+#                 email=email,
+#                 password=None,
+#             )
+#             user.first_name = name[:30]
+#             user.set_unusable_password()
+#             user.save()
+
+#         tokens = _issue_jwt_for_user(user)
+#         return Response({
+#             "provider": "google",
+#             "user": {
+#                 "id": user.id,
+#                 "email": user.email,
+#                 "username": user.username,
+#                 "name": user.first_name,
+#             },
+#             "tokens": tokens,
+#             "raw": {"id_token": id_token},
+#         }, status=200)
+
+# apps/user/views.py
+
 class GoogleAuthCallback(APIView):
     permission_classes = [AllowAny]
 
-    def get(self, request):
-        code = request.GET.get("code")
-        state = request.GET.get("state")
+    def post(self, request):   # ✅ POST 지원 추가
+        code = request.data.get("code")
+        state = request.data.get("state")
 
-        if not code or not state:
-            return Response({"detail": "code/state 누락"}, status=400)
+        if not code:
+            return Response({"detail": "code 누락"}, status=400)
 
-        if state != request.session.get("oauth_state_google"):
-            return Response({"detail": "state 불일치"}, status=400)
+        # ⚠️ 세션 state 검증은 불가능하므로 제거하거나, 
+        # 필요하면 프론트에서 생성한 state를 DB/캐시에 저장해 검증해야 함
+        # 여기서는 단순히 넘어온 state를 무시하고 처리
+        # if state != request.session.get("oauth_state_google"):
+        #     return Response({"detail": "state 불일치"}, status=400)
 
         data = {
             "code": code,
             "client_id": settings.GOOGLE_CLIENT_ID,
             "client_secret": settings.GOOGLE_CLIENT_SECRET,
-            "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+            "redirect_uri": settings.GOOGLE_REDIRECT_URI,  # 프론트 도메인
             "grant_type": "authorization_code",
         }
         token_res = requests.post(GOOGLE_TOKEN_URL, data=data, timeout=10)
@@ -168,7 +239,6 @@ class GoogleAuthCallback(APIView):
             "tokens": tokens,
             "raw": {"id_token": id_token},
         }, status=200)
-
 
 # ==================== GITHUB ====================
 

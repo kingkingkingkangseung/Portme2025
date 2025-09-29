@@ -1,16 +1,16 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions
-from .models import Activity, ActivityMemo, ActivityCategory, Tag
+from rest_framework import generics, permissions, viewsets
+from .models import (
+    Activity, ActivityMemo, ActivityCategory, Tag,
+    Award, Certification
+)
 from .serializers import (
-    ActivitySerializer,
-    ActivityMemoSerializer,
-    ActivityCategorySerializer,
-    TagSerializer,
+    ActivitySerializer, ActivityMemoSerializer,
+    ActivityCategorySerializer, TagSerializer,
+    AwardSerializer, CertificationSerializer
 )
 
-
 # -------- 활동 CRUD --------
-
 class ActivityListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ActivitySerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -31,7 +31,6 @@ class ActivityDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 # -------- 메모 --------
-
 class ActivityMemoListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ActivityMemoSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -56,7 +55,6 @@ class ActivityMemoDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 # -------- 카테고리/태그 --------
-
 class ActivityCategoryListAPIView(generics.ListAPIView):
     queryset = ActivityCategory.objects.filter(is_active=True).order_by("order")
     serializer_class = ActivityCategorySerializer
@@ -76,3 +74,26 @@ class TagListAPIView(generics.ListAPIView):
         if q:
             qs = qs.filter(name__icontains=q)
         return qs
+
+
+# -------- Award / Certification --------
+class AwardViewSet(viewsets.ModelViewSet):
+    serializer_class = AwardSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Award.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class CertificationViewSet(viewsets.ModelViewSet):
+    serializer_class = CertificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Certification.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
