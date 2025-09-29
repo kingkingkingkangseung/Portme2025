@@ -31,14 +31,12 @@ def google_callback_echo(request):
 def oauth_callback_echo(request):
     return HttpResponse(f"code = {request.GET.get('code')}")
 
-
 # ===== 📌 Router 등록 =====
 router = DefaultRouter()
 router.register(r"awards", AwardViewSet, basename="award")
 router.register(r"certifications", CertificationViewSet, basename="certification")
 router.register(r"globalexps", GlobalExpViewSet, basename="globalexp")
 router.register(r"foreignlangs", ForeignLangViewSet, basename="foreignlang")
-
 
 # ===== 📌 URL 패턴 =====
 urlpatterns = [

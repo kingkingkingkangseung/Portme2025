@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from .models import (
-    Activity, ActivityMemo, ActivityCategory, Tag, ActivityRole,
-    Award, Certification, GlobalExp, ForeignLang
+    Activity, ActivityMemo, ActivityCategory, Tag,
+    ActivityRole, Award, Certification, ForeignLang, GlobalExp
 )
 
-# ===== Activity 관련 =====
+# ---- 기본 ----
 class ActivityCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivityCategory
@@ -30,17 +30,26 @@ class ActivityRoleSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "count"]
 
 
+# ---- Activity ----
 class ActivitySerializer(serializers.ModelSerializer):
     memos = ActivityMemoSerializer(many=True, read_only=True)
     roles = ActivityRoleSerializer(many=True, read_only=True)
+    category = ActivityCategorySerializer(read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
+    primary_tags = TagSerializer(many=True, read_only=True)
+    secondary_tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Activity
         fields = "__all__"
-        read_only_fields = ["id", "user", "created_at", "updated_at"]
+        read_only_fields = [
+            "id", "created_at", "updated_at",
+            "memos", "category", "tags", "roles",
+            "primary_tags", "secondary_tags",
+        ]
 
 
-# ===== Award / Certification =====
+# ---- Award / Certification / ForeignLang / GlobalExp ----
 class AwardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Award
@@ -55,17 +64,15 @@ class CertificationSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "user"]
 
 
-# ===== GlobalExp =====
-class GlobalExpSerializer(serializers.ModelSerializer):
+class ForeignLangSerializer(serializers.ModelSerializer):
     class Meta:
-        model = GlobalExp
+        model = ForeignLang
         fields = "__all__"
         read_only_fields = ["id", "user"]
 
 
-# ===== ForeignLang =====
-class ForeignLangSerializer(serializers.ModelSerializer):
+class GlobalExpSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ForeignLang
+        model = GlobalExp
         fields = "__all__"
         read_only_fields = ["id", "user"]
