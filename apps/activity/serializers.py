@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import (
-    Activity, ActivityMemo, ActivityCategory, Tag, ActivityRole, Award, Certification
+    Activity, ActivityMemo, ActivityCategory, Tag, ActivityRole,
+    Award, Certification, GlobalExp, ForeignLang
 )
 
 
@@ -129,5 +130,20 @@ class AwardSerializer(serializers.ModelSerializer):
 class CertificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Certification
+        fields = "__all__"
+        read_only_fields = ["id", "user"]
+
+
+# ---- GlobalExp / ForeignLang ----
+class GlobalExpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GlobalExp
+        fields = "__all__"
+        read_only_fields = ["id", "user"]
+
+
+class ForeignLangSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ForeignLang
         fields = "__all__"
         read_only_fields = ["id", "user"]

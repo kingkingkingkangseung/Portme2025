@@ -1,13 +1,13 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, viewsets
 from .models import (
-    Activity, ActivityMemo, ActivityCategory, Tag, Award, Certification
+    Activity, ActivityMemo, ActivityCategory, Tag,
+    Award, Certification, GlobalExp, ForeignLang
 )
 from .serializers import (
     ActivitySerializer, ActivityMemoSerializer, ActivityCategorySerializer, TagSerializer,
-    AwardSerializer, CertificationSerializer
+    AwardSerializer, CertificationSerializer, GlobalExpSerializer, ForeignLangSerializer
 )
-
 
 # -------- 활동 CRUD --------
 class ActivityListCreateAPIView(generics.ListCreateAPIView):
@@ -68,7 +68,6 @@ class TagListAPIView(generics.ListAPIView):
         qs = Tag.objects.all().order_by("name")
         kind = self.request.query_params.get("kind")
         q = self.request.query_params.get("q")
-
         if kind in ("soft", "hard", "job"):
             qs = qs.filter(kind=kind)
         if q:
@@ -76,7 +75,7 @@ class TagListAPIView(generics.ListAPIView):
         return qs
 
 
-# -------- Award / Certification --------
+# -------- Award / Certification / GlobalExp / ForeignLang --------
 class AwardViewSet(viewsets.ModelViewSet):
     serializer_class = AwardSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -94,6 +93,28 @@ class CertificationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Certification.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class GlobalExpViewSet(viewsets.ModelViewSet):
+    serializer_class = GlobalExpSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return GlobalExp.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class ForeignLangViewSet(viewsets.ModelViewSet):
+    serializer_class = ForeignLangSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return ForeignLang.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.http import HttpResponse, JsonResponse
 from rest_framework.routers import DefaultRouter
-from apps.activity.views import AwardViewSet, CertificationViewSet
+from apps.activity.views import AwardViewSet, CertificationViewSet, ForeignLangViewSet, GlobalExpViewSet
 
 # user.views에서 필요한 뷰만 import
 from apps.user.views import (
@@ -35,6 +35,8 @@ def oauth_callback_echo(request):
 router = DefaultRouter()
 router.register(r"awards", AwardViewSet, basename="award")
 router.register(r"certifications", CertificationViewSet, basename="certification")
+router.register(r"globalexps", GlobalExpViewSet, basename="globalexp")
+router.register(r"foreignlangs", ForeignLangViewSet, basename="foreignlang")
 
 
 urlpatterns = [
