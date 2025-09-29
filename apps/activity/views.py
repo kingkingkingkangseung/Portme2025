@@ -72,3 +72,28 @@ class GlobalExpViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+
+
+class ActivityMemoListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = ActivityMemoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        activity_id = self.kwargs["activity_id"]
+        return ActivityMemo.objects.filter(activity__id=activity_id, activity__user=self.request.user)
+
+    def perform_create(self, serializer):
+        activity_id = self.kwargs["activity_id"]
+        activity = get_object_or_404(Activity, id=activity_id, user=self.request.user)
+        serializer.save(activity=activity)
+
+
+class ActivityMemoDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ActivityMemoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        activity_id = self.kwargs["activity_id"]
+        return ActivityMemo.objects.filter(activity__id=activity_id, activity__user=self.request.user)
