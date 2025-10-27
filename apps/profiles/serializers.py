@@ -1,12 +1,23 @@
 # apps/profiles/serializers.py
 from rest_framework import serializers
-from .models import Profile, JobRole
+from .models import (
+    Profile, JobRole,
+    JobCategory, HardSkill, SoftSkill,
+    JobHardSkill, JobSoftSkill,
+)
 
 
 class JobRoleSerializer(serializers.ModelSerializer):
+    job_category = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = JobRole
-        fields = ("id", "name", "group")
+        fields = ("id", "name", "group", "job_category")
+
+    def get_job_category(self, obj):
+        if not obj.job_category:
+            return None
+        return {"id": obj.job_category.id, "name": obj.job_category.name}
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -66,3 +77,34 @@ class ProfileSerializer(serializers.ModelSerializer):
             attrs["job_role"] = None
 
         return attrs
+
+
+# ---------- ERD 확장 직무/스킬 ----------
+
+class JobCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobCategory
+        fields = ("id", "name", "order")
+
+
+class HardSkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HardSkill
+        fields = ("id", "name", "code")
+
+
+class SoftSkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SoftSkill
+        fields = ("id", "name")
+
+
+class JobRoleSkillsSerializer(serializers.Serializer):
+    job_role = JobRoleSerializer(read_only=True)
+    hard_skills = HardSkillSerializer(many=True, read_only=True)
+    soft_skills = SoftSkillSerializer(many=True, read_only=True)
+
+
+class JobRoleSkillsUpdateSerializer(serializers.Serializer):
+    hard_ids = serializers.ListField(child=serializers.IntegerField(), required=False)
+    soft_ids = serializers.ListField(child=serializers.IntegerField(), required=False)

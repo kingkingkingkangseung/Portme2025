@@ -16,6 +16,12 @@ class JobRole(models.Model):
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
+    # ERD 확장: 상위 직무 카테고리 (j_category)
+    job_category = models.ForeignKey(
+        'profiles.JobCategory', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='job_roles', verbose_name='직무 카테고리'
+    )
+
     class Meta:
         ordering = ["group", "order", "name"]
 
@@ -53,3 +59,56 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - Profile"
+
+
+# ============================
+# ERD 확장: 직무/스킬 정규화
+# ============================
+
+class JobCategory(models.Model):
+    name = models.CharField("카테고리명", max_length=100, unique=True)
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["order", "name"]
+
+    def __str__(self):
+        return self.name
+
+
+class HardSkill(models.Model):
+    name = models.CharField("하드스킬명", max_length=100, unique=True)
+    code = models.SlugField("스킬코드", max_length=64, unique=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+
+class SoftSkill(models.Model):
+    name = models.CharField("소프트스킬명", max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class JobHardSkill(models.Model):
+    job_role = models.ForeignKey('profiles.JobRole', on_delete=models.CASCADE)
+    hard_skill = models.ForeignKey('profiles.HardSkill', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("job_role", "hard_skill")
+
+    def __str__(self):
+        return f"{self.job_role} - {self.hard_skill}"
+
+
+class JobSoftSkill(models.Model):
+    job_role = models.ForeignKey('profiles.JobRole', on_delete=models.CASCADE)
+    soft_skill = models.ForeignKey('profiles.SoftSkill', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("job_role", "soft_skill")
+
+    def __str__(self):
+        return f"{self.job_role} - {self.soft_skill}"

@@ -2,11 +2,13 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, viewsets
 from .models import (
     Activity, ActivityMemo, ActivityCategory, Tag,
-    Award, Certification, GlobalExp, ForeignLang
+    Award, Certification, GlobalExp, ForeignLang,
+    ActivityHardSkill, ActivitySoftSkill,
 )
 from .serializers import (
     ActivitySerializer, ActivityMemoSerializer, ActivityCategorySerializer, TagSerializer,
-    AwardSerializer, CertificationSerializer, GlobalExpSerializer, ForeignLangSerializer
+    AwardSerializer, CertificationSerializer, GlobalExpSerializer, ForeignLangSerializer,
+    ActivityHardSkillSerializer, ActivitySoftSkillSerializer,
 )
 
 # -------- 활동 CRUD --------
@@ -118,3 +120,50 @@ class ForeignLangViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+# -------- ERD 확장: Activity ↔ Skill --------
+class ActivityHardSkillListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = ActivityHardSkillSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_activity(self):
+        return get_object_or_404(Activity, pk=self.kwargs["activity_id"], user=self.request.user)
+
+    def get_queryset(self):
+        return ActivityHardSkill.objects.filter(activity=self.get_activity()).order_by("id")
+
+    def perform_create(self, serializer):
+        serializer.save(activity=self.get_activity())
+
+
+class ActivityHardSkillDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ActivityHardSkillSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        activity = get_object_or_404(Activity, pk=self.kwargs["activity_id"], user=self.request.user)
+        return get_object_or_404(ActivityHardSkill, pk=self.kwargs["pk"], activity=activity)
+
+
+class ActivitySoftSkillListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = ActivitySoftSkillSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_activity(self):
+        return get_object_or_404(Activity, pk=self.kwargs["activity_id"], user=self.request.user)
+
+    def get_queryset(self):
+        return ActivitySoftSkill.objects.filter(activity=self.get_activity()).order_by("id")
+
+    def perform_create(self, serializer):
+        serializer.save(activity=self.get_activity())
+
+
+class ActivitySoftSkillDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ActivitySoftSkillSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        activity = get_object_or_404(Activity, pk=self.kwargs["activity_id"], user=self.request.user)
+        return get_object_or_404(ActivitySoftSkill, pk=self.kwargs["pk"], activity=activity)

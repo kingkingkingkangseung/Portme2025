@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from .models import (
     Activity, ActivityMemo, ActivityCategory, Tag, ActivityRole,
-    Award, Certification, GlobalExp, ForeignLang
+    Award, Certification, GlobalExp, ForeignLang,
+    ActivityHardSkill, ActivitySoftSkill,
 )
+from apps.profiles.models import HardSkill, SoftSkill
 
 
 # ---- 기본 ----
@@ -147,3 +149,34 @@ class ForeignLangSerializer(serializers.ModelSerializer):
         model = ForeignLang
         fields = "__all__"
         read_only_fields = ["id", "user"]
+
+
+# ---- ERD 확장: Activity ↔ Skill ----
+class ActivityHardSkillSerializer(serializers.ModelSerializer):
+    hard_skill = serializers.SerializerMethodField(read_only=True)
+    hard_skill_id = serializers.PrimaryKeyRelatedField(
+        queryset=HardSkill.objects.all(), source='hard_skill', write_only=True
+    )
+
+    class Meta:
+        model = ActivityHardSkill
+        fields = ["id", "activity", "hard_skill", "hard_skill_id", "level", "level_description"]
+        read_only_fields = ["id", "activity", "hard_skill"]
+
+    def get_hard_skill(self, obj):
+        return {"id": obj.hard_skill.id, "name": obj.hard_skill.name, "code": obj.hard_skill.code}
+
+
+class ActivitySoftSkillSerializer(serializers.ModelSerializer):
+    soft_skill = serializers.SerializerMethodField(read_only=True)
+    soft_skill_id = serializers.PrimaryKeyRelatedField(
+        queryset=SoftSkill.objects.all(), source='soft_skill', write_only=True
+    )
+
+    class Meta:
+        model = ActivitySoftSkill
+        fields = ["id", "activity", "soft_skill", "soft_skill_id", "level", "level_description"]
+        read_only_fields = ["id", "activity", "soft_skill"]
+
+    def get_soft_skill(self, obj):
+        return {"id": obj.soft_skill.id, "name": obj.soft_skill.name}

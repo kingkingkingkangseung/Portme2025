@@ -140,3 +140,33 @@ class ForeignLang(models.Model):
 
     def __str__(self):
         return f"{self.lang_name} ({self.user.username})"
+
+
+# ============================
+# ERD 확장: Activity ↔ Skill 매핑(레벨)
+# ============================
+
+class ActivityHardSkill(models.Model):
+    activity = models.ForeignKey('activity.Activity', on_delete=models.CASCADE, related_name='hard_skill_links')
+    hard_skill = models.ForeignKey('profiles.HardSkill', on_delete=models.CASCADE, related_name='activity_links')
+    level = models.PositiveSmallIntegerField(default=1)
+    level_description = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        unique_together = ("activity", "hard_skill")
+
+    def __str__(self):
+        return f"{self.activity_id} - {self.hard_skill} (L{self.level})"
+
+
+class ActivitySoftSkill(models.Model):
+    activity = models.ForeignKey('activity.Activity', on_delete=models.CASCADE, related_name='soft_skill_links')
+    soft_skill = models.ForeignKey('profiles.SoftSkill', on_delete=models.CASCADE, related_name='activity_links')
+    level = models.PositiveSmallIntegerField(default=1)
+    level_description = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        unique_together = ("activity", "soft_skill")
+
+    def __str__(self):
+        return f"{self.activity_id} - {self.soft_skill} (L{self.level})"
