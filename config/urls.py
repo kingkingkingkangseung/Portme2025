@@ -9,8 +9,7 @@ from apps.activity.views import (
 from apps.user.views import (
     CustomLoginView,
     CustomRegisterView,
-    GoogleAuthStart, GoogleAuthCallback,
-    GitHubAuthStart, GitHubAuthCallback,
+    GoogleLogin, GoogleLoginCallback,
 )
 
 
@@ -34,11 +33,9 @@ urlpatterns = [
     # allauth
     path("accounts/", include("allauth.urls")),
 
-    # OAuth
-    path("api/auth/google/login/", GoogleAuthStart.as_view(), name="google_auth_start"),
-    path("api/auth/google/callback/", GoogleAuthCallback.as_view(), name="google_auth_callback"),
-    path("api/auth/github/login/", GitHubAuthStart.as_view(), name="github_auth_start"),
-    path("api/auth/github/callback/", GitHubAuthCallback.as_view(), name="github_auth_callback"),
+    # OAuth (current implementation uses SocialLoginView)
+    path("api/v1/auth/google/", GoogleLogin.as_view(), name="google_login"),
+    path("api/v1/auth/google/callback/", GoogleLoginCallback.as_view(), name="google_login_callback"),
 
     # Auth
     path("api/auth/login/", CustomLoginView.as_view(), name="rest_login"),
@@ -54,4 +51,3 @@ urlpatterns = [
     # Router endpoints
     path("api/", include(router.urls)),
 ]
-
