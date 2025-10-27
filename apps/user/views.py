@@ -105,6 +105,7 @@ class GoogleLogin(SocialLoginView):
 
 
 class GoogleLoginCallback(APIView):
+    permission_classes = [AllowAny]
     def get(self, request, *args, **kwargs):
         """Accept callback request from Google OAuth screen.
         Extract code and send a POST request to Google authentication endpoint.
