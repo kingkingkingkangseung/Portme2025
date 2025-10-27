@@ -7,15 +7,22 @@ from rest_framework import status
 from rest_framework.response import Response
 from dj_rest_auth.serializers import UserDetailsSerializer
 
-
 import secrets, string
 import requests
 from urllib.parse import urlencode
+from urllib.parse import urljoin
+
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.views import SocialLoginView
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model  
 from django.utils import timezone
 from django.shortcuts import redirect
+from django.views import View
+from django.shortcuts import render
+from django.urls import reverse
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -79,30 +86,14 @@ class CustomLoginView(LoginView):
 
 # ==================== GOOGLE ====================
 
-GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
-GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
-GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
-
-class GoogleAuthStart(APIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        state = _random_state()
-        request.session["oauth_state_google"] = state
-        request.session["oauth_state_google_ts"] = timezone.now().isoformat()
-
-        params = {
-            "response_type": "code",
-            "client_id": settings.GOOGLE_CLIENT_ID,
-            "redirect_uri": settings.GOOGLE_REDIRECT_URI,
-            "scope": "openid email profile",
-            "state": state,
-            "access_type": "offline",
-            "prompt": "consent",
-        }
-        return redirect(f"{GOOGLE_AUTH_URL}?{urlencode(params)}")
+# if you want to use Authorization Code Grant, use this
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    callback_url = settings.GOOGLE_REDIRECT_URI
+    client_class = OAuth2Client
 
 
+<<<<<<< HEAD
 #  class GoogleAuthCallback(APIView):
 #     permission_classes = [AllowAny]
 
@@ -197,11 +188,30 @@ class GoogleAuthCallback(APIView):
         token_res = requests.post(GOOGLE_TOKEN_URL, data=data, timeout=10)
         if token_res.status_code != 200:
             return Response({"detail": "Google 토큰 교환 실패", "res": token_res.text}, status=400)
+=======
+class GoogleLoginCallback(APIView):
+    def get(self, request, *args, **kwargs):
+        """Accept callback request from Google OAuth screen.
+        Extract code and send a POST request to Google authentication endpoint.
 
-        token_json = token_res.json()
-        access_token = token_json.get("access_token")
-        id_token = token_json.get("id_token")
+        If you are building a fullstack application (eg. with React app next to Django)
+        you can place this endpoint in your frontend application to receive
+        the JWT tokens there - and store them in the state
+        """
 
+        code = request.GET.get("code")
+
+        if code is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        token_endpoint_url = request.build_absolute_uri(reverse("google_login"))
+
+        response = requests.post(url=token_endpoint_url, data={"code": code})
+>>>>>>> 1027
+
+        return Response(response.json(), status=status.HTTP_200_OK)
+
+<<<<<<< HEAD
         userinfo = requests.get(
             GOOGLE_USERINFO_URL,
             headers={"Authorization": f"Bearer {access_token}"},
@@ -334,3 +344,5 @@ class GitHubAuthCallback(APIView):
             },
             "tokens": tokens,
         }, status=200)
+=======
+>>>>>>> 1027

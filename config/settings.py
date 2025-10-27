@@ -6,8 +6,8 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 
-# ── ENV 로드 ──
-load_dotenv()
+# Load environment variables
+load_dotenv(".env")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -34,14 +34,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles',
     'django.contrib.sites',
 
-    # DRF + Auth
-    'rest_framework', 'rest_framework.authtoken',
-    'dj_rest_auth', 'dj_rest_auth.registration',
+    # DRF + JWT
+    'rest_framework',
+    'rest_framework.authtoken',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+    'django_rest_passwordreset',
 
     # allauth
     'allauth', 'allauth.account', 'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.github',
 
     # Apps
     'apps.user', 'apps.profiles', 'apps.portfolio', 'apps.activity', 'apps.community',
@@ -133,6 +135,16 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# django-cors-headers
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_CREDENTIALS = True
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000/",
+    ]
+
+
 # ====================
 # User Model
 # ====================
@@ -149,18 +161,25 @@ AUTHENTICATION_BACKENDS = [
 # ====================
 # allauth
 # ====================
-ACCOUNT_AUTHENTICATION_METHOD = 'username'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
 DEFAULT_FROM_EMAIL = 'noreply@example.com'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-SOCIALACCOUNT_EMAIL_REQUIRED = True
-SOCIALACCOUNT_QUERY_EMAIL = True
-SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_REQUIRED = True        # 소셜 로그인에서는 없어도 통과(중요)
+SOCIALACCOUNT_QUERY_EMAIL = True            # GitHub에서 email API 조회(중요)
+SOCIALACCOUNT_AUTO_SIGNUP = True  
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
+
+FRONTEND_URL = os.environ.get("FRONTEND_URL")
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -169,23 +188,10 @@ SOCIALACCOUNT_PROVIDERS = {
             'secret': os.getenv("GOOGLE_CLIENT_SECRET"),
             'key': ''
         },
-        "SCOPE": ["openid", "email", "profile"],
+        "SCOPE": ["profile", "email"],
         "AUTH_PARAMS": {
-            "access_type": "offline",
-            "prompt": "consent"
+            "access_type": "online",
         },
-        "OAUTH_PKCE_ENABLED": True,
-        "REDIRECT_URI": os.getenv("GOOGLE_REDIRECT_URI"),
-    },
-
-    'github': {
-        'APP': {
-            'client_id': os.getenv("GITHUB_CLIENT_ID"),
-            'secret': os.getenv("GITHUB_CLIENT_SECRET"),
-            'key': ''
-        },
-        "SCOPE": ["read:user", "user:email"],
-        "REDIRECT_URI": os.getenv("GITHUB_REDIRECT_URI"),
     }
 }
 
