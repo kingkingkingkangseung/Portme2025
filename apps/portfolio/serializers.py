@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Portfolio, Project, ProjectCategory
 from apps.activity.serializers import ActivitySerializer
+from apps.activity.models import Activity
 
 class PortfolioSerializer(serializers.ModelSerializer):
     class Meta:
@@ -38,7 +39,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     )
     activities = ActivitySerializer(many=True, read_only=True)
     activity_ids = serializers.PrimaryKeyRelatedField(
-        queryset=None, many=True, write_only=True, required=False
+        queryset=Activity.objects.all(), many=True, write_only=True, required=False
     )
 
     class Meta:
@@ -50,12 +51,6 @@ class ProjectSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'activities', 'category']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # 지연 import로 순환참조 회피
-        from apps.activity.models import Activity
-        self.fields['activity_ids'].queryset = Activity.objects.all()
 
     def create(self, validated_data):
         acts = validated_data.pop('activity_ids', [])
