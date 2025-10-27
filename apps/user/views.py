@@ -58,13 +58,18 @@ class CustomRegisterView(RegisterView):
     permission_classes = [AllowAny]
 
     def get_response(self):
-        refresh = RefreshToken.for_user(self.user)
-        user_data = UserDetailsSerializer(self.user).data
-        return Response({
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-            "user": user_data,
-        }, status=status.HTTP_200_OK)
+        try:
+            if not getattr(self, "user", None):
+                return Response({"detail": "registration user missing"}, status=400)
+            refresh = RefreshToken.for_user(self.user)
+            user_data = UserDetailsSerializer(self.user).data
+            return Response({
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": user_data,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"detail": "registration response error", "error": str(e)}, status=500)
 
 
 class CustomLoginView(LoginView):
@@ -74,13 +79,19 @@ class CustomLoginView(LoginView):
     permission_classes = [AllowAny]
 
     def get_response(self):
-        refresh = RefreshToken.for_user(self.user)
-        user_data = UserDetailsSerializer(self.user).data
-        return Response({
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-            "user": user_data,
-        }, status=status.HTTP_200_OK)
+        try:
+            if not getattr(self, "user", None):
+                return Response({"detail": "Invalid credentials"}, status=400)
+            refresh = RefreshToken.for_user(self.user)
+            user_data = UserDetailsSerializer(self.user).data
+            return Response({
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": user_data,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            # 안전망: 500 대신 친절한 메시지와 힌트 제공
+            return Response({"detail": "login response error", "error": str(e)}, status=500)
 
 
 
