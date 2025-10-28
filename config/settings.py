@@ -47,6 +47,8 @@ INSTALLED_APPS = [
 
     # Apps
     'apps.user', 'apps.profiles', 'apps.portfolio', 'apps.activity', 'apps.community',
+    # CORS
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 TEMPLATES = [{
@@ -76,6 +79,11 @@ TEMPLATES = [{
 
 ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
+
+CORS_ALLOWED_ORIGINS = [
+    "https://react-porters-grove.vercel.app",
+]
+CORS_ALLOW_CREDENTIALS = True
 
 # ====================
 # Database (RDS ↔ SQLite 자동 전환)
@@ -219,8 +227,6 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 REST_AUTH = {'USE_JWT': True}
-# dj-rest-auth 구버전/신버전 호환 플래그 (일부 배포환경에서 필요)
-REST_USE_JWT = True
 REST_AUTH_REGISTER_SERIALIZERS = {
     'REGISTER_SERIALIZER': 'apps.user.serializers.RegisterSerializer'
 }
