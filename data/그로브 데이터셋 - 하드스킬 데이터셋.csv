@@ -1,0 +1,417 @@
+그로브 하드스킬 데이터셋,,
+,,
+,,
+,,
+hard_skill_id,hard_skill_name,category
+1,Java,Developer
+2,JavaScript,Developer
+3,TypeScript,Developer
+4,Python,Developer
+5,Kotlin,Developer
+6,Go,Developer
+7,C#,Developer
+8,C++,Developer
+9,PHP,Developer
+10,Ruby,Developer
+11,Swift,Developer
+12,Rust,Developer
+13,HTML5,Developer
+14,CSS 3,Developer
+15,SQL,Developer
+16,Spring,Developer
+17,Node.js,Developer
+18,Express.js,Developer
+19,Django,Developer
+20,Flask,Developer
+21,FastAPI,Developer
+22,Ruby on Rails,Developer
+23,Laravel,Developer
+24,.NET Core,Developer
+25,React,Developer
+26,Vue.js,Developer
+27,Angular,Developer
+28,Svelte,Developer
+29,Next.js,Developer
+30,Nuxt.js,Developer
+31,Redux,Developer
+32,Zustand,Developer
+33,React Query,Developer
+34,Tailwind CSS,Developer
+35,JPA,Developer
+36,Hibernate,Developer
+37,MyBatis,Developer
+38,QueryDSL,Developer
+39,NestJS,Developer
+40,React Native,Developer
+41,Flutter,Developer
+42,MySQL,Developer
+43,PostgreSQL,Developer
+44,Oracle,Developer
+45,MS-SQL,Developer
+46,MariaDB,Developer
+47,MongoDB,Developer
+48,Redis,Developer
+49,Elasticsearch,Developer
+50,Amazon Web Services (AWS),Developer
+51,Google Cloud Platform (GCP),Developer
+52,Microsoft Azure,Developer
+53,Docker,Developer
+54,Kubernetes,Developer
+55,CI/CD,Developer
+56,Jenkins,Developer
+57,GitHub Actions,Developer
+58,GitLab CI,Developer
+59,Terraform,Developer
+60,Ansible,Developer
+61,NGINX,Developer
+62,Apache Kafka,Developer
+63,RabbitMQ,Developer
+64,REST API,Developer
+65,GraphQL,Developer
+66,Git,Developer
+67,GitHub,Developer
+68,GitLab,Developer
+69,Jira,Developer
+70,Confluence,Developer
+71,Slack,Developer
+72,Linux,Developer
+73,서버리스 아키텍처,Developer
+74,마이크로서비스 아키텍처(MSA),Developer
+75,단위 테스트(Unit Test),Developer
+76,통합 테스트(Integration Test),Developer
+77,객체지향 프로그래밍(OOP),Developer
+78,함수형 프로그래밍,Developer
+79,TDD(테스트 주도 개발),Developer
+80,BDD(행동 주도 개발),Developer
+81,Webpack,Developer
+82,Vite,Developer
+83,TensorFlow,Developer
+84,PyTorch,Developer
+85,Scikit-learn,Developer
+86,Pandas,Developer
+87,NumPy,Developer
+88,gRPC,Developer
+89,WebSocket,Developer
+90,OAuth,Developer
+91,JWT(JSON Web Token),Developer
+92,AWS Lambda,Developer
+93,Amazon S3,Developer
+94,Amazon EC2,Developer
+95,Amazon RDS,Developer
+96,Amazon DynamoDB,Developer
+97,프로메테우스(Prometheus),Developer
+98,그라파나(Grafana),Developer
+99,Figma,Designer
+100,Adobe XD,Designer
+101,Sketch,Designer
+102,Adobe Photoshop,Designer
+103,Adobe Illustrator,Designer
+104,Adobe After Effects,Designer
+105,Adobe InDesign,Designer
+106,Zeplin,Designer
+107,ProtoPie,Designer
+108,InVision,Designer
+109,Framer,Designer
+110,Canva,Designer
+111,Cinema 4D,Designer
+112,Blender,Designer
+113,Procreate,Designer
+114,UX 리서치,Designer
+115,UI 디자인,Designer
+116,GUI 디자인,Designer
+117,와이어프레이밍,Designer
+118,프로토타이핑,Designer
+119,사용성 테스트,Designer
+120,FGI(포커스 그룹 인터뷰),Designer
+121,사용자 인터뷰,Designer
+122,페르소나 정의,Designer
+123,고객 여정 지도(Customer Journey Map),Designer
+124,정보 구조 설계(IA),Designer
+125,사용자 흐름도(User Flow),Designer
+126,디자인 시스템 구축,Designer
+127,디자인 가이드라인 제작,Designer
+128,데이터 기반 디자인,Designer
+129,A/B 테스팅,Designer
+130,히트맵 분석,Designer
+131,정성적 데이터 분석,Designer
+132,정량적 데이터 분석,Designer
+133,HTML,Designer
+134,CSS,Designer
+135,반응형 웹 디자인,Designer
+136,적응형 웹 디자인,Designer
+137,BX(브랜드 경험) 디자인,Designer
+138,BI(브랜드 아이덴티티) 디자인,Designer
+139,로고 디자인,Designer
+140,타이포그래피,Designer
+141,편집 디자인,Designer
+142,패키지 디자인,Designer
+143,아이콘 디자인,Designer
+144,일러스트레이션,Designer
+145,캐릭터 디자인,Designer
+146,모션 그래픽,Designer
+147,인터랙션 디자인,Designer
+148,3D 모델링,Designer
+149,영상 편집,Designer
+150,Adobe Premiere Pro,Designer
+151,Final Cut Pro,Designer
+152,스토리보드 제작,Designer
+153,서비스 디자인,Designer
+154,경험 디자인(XD),Designer
+155,디자인 씽킹,Designer
+156,애자일(Agile) 방법론,Designer
+157,스크럼(Scrum),Designer
+158,린(Lean) UX,Designer
+159,더블 다이아몬드 프로세스,Designer
+160,카드 소팅,Designer
+161,어피니티 다이어그램,Designer
+162,경쟁사 분석,Designer
+163,벤치마킹,Designer
+164,디자인 스프린트,Designer
+165,시각 디자인,Designer
+166,색채 이론,Designer
+167,레이아웃 디자인,Designer
+168,그리드 시스템,Designer
+169,인포그래픽 디자인,Designer
+170,웹 접근성(Web Accessibility),Designer
+171,마이크로 인터랙션,Designer
+172,음성 사용자 인터페이스(VUI),Designer
+173,증강현실(AR) UX,Designer
+174,가상현실(VR) UX,Designer
+175,게이미피케이션,Designer
+176,디자인 QA,Designer
+177,Notion,Designer
+178,Jira,Designer
+179,Miro,Designer
+180,Adobe Fonts,Designer
+181,Google Fonts,Designer
+182,머티리얼 디자인,Designer
+183,휴먼 인터페이스 가이드라인(HIG),Designer
+184,그래픽 디자인,Designer
+185,콘텐츠 디자인,Designer
+186,광고 디자인,Designer
+187,상세 페이지 디자인,Designer
+188,배너 디자인,Designer
+189,폰트 디자인,Designer
+190,캘리그래피,Designer
+191,사진 보정,Designer
+192,핸드 드로잉,Designer
+193,스케치,Designer
+194,목업(Mockup) 제작,Designer
+195,스타일 가이드,Designer
+196,제스처 디자인,Designer
+197,챗봇 UI 디자인,Designer
+198,"AI 활용 디자인 (e.g., Midjourney, Firefly)",Designer
+199,Google Analytics (GA),Marketer
+200,Amplitude,Marketer
+201,Mixpanel,Marketer
+202,SQL,Marketer
+203,Python (데이터 분석),Marketer
+204,R (데이터 분석),Marketer
+205,Tableau,Marketer
+206,Google Data Studio (Looker Studio),Marketer
+207,Microsoft Excel (고급),Marketer
+208,Google Sheets (고급),Marketer
+209,A/B 테스팅,Marketer
+210,퍼널 분석,Marketer
+211,코호트 분석,Marketer
+212,LTV(고객 생애 가치) 분석,Marketer
+213,CAC(고객 획득 비용) 분석,Marketer
+214,ROAS(광고 수익률) 분석,Marketer
+215,ROI(투자 수익률) 분석,Marketer
+216,데이터 시각화,Marketer
+217,그로스 해킹,Marketer
+218,퍼포먼스 마케팅,Marketer
+219,Google Ads,Marketer
+220,Meta Ads (Facebook/Instagram),Marketer
+221,Naver Ads (네이버 검색광고),Marketer
+222,Kakao Ads (카카오 광고),Marketer
+223,TikTok Ads,Marketer
+224,YouTube Ads,Marketer
+225,LinkedIn Ads,Marketer
+226,Apple Search Ads (ASA),Marketer
+227,검색 엔진 마케팅(SEM),Marketer
+228,디스플레이 광고(DA),Marketer
+229,검색 엔진 최적화(SEO),Marketer
+230,SEMrush,Marketer
+231,Ahrefs,Marketer
+232,Moz,Marketer
+233,Google Search Console,Marketer
+234,Google Trends,Marketer
+235,키워드 리서치,Marketer
+236,온페이지 SEO,Marketer
+237,오프페이지 SEO (백링크),Marketer
+238,테크니컬 SEO,Marketer
+239,콘텐츠 마케팅,Marketer
+240,블로그 운영,Marketer
+241,카피라이팅,Marketer
+242,콘텐츠 기획,Marketer
+243,카드뉴스 제작,Marketer
+244,영상 콘텐츠 기획/제작,Marketer
+245,Canva,Marketer
+246,Adobe Photoshop,Marketer
+247,Adobe Premiere Pro,Marketer
+248,Final Cut Pro,Marketer
+249,소셜 미디어 마케팅(SMM),Marketer
+250,인스타그램 채널 운영,Marketer
+251,페이스북 채널 운영,Marketer
+252,유튜브 채널 운영,Marketer
+253,틱톡 채널 운영,Marketer
+254,링크드인 채널 운영,Marketer
+255,커뮤니티 관리,Marketer
+256,인플루언서 마케팅,Marketer
+257,바이럴 마케팅,Marketer
+258,고객 관계 관리(CRM),Marketer
+259,Salesforce,Marketer
+260,HubSpot,Marketer
+261,마케팅 자동화,Marketer
+262,Braze,Marketer
+263,Mailchimp,Marketer
+264,이메일 마케팅,Marketer
+265,앱 푸시 마케팅,Marketer
+266,SMS 마케팅,Marketer
+267,브랜드 마케팅,Marketer
+268,시장 조사,Marketer
+269,경쟁사 분석,Marketer
+270,STP 전략 수립,Marketer
+271,4P Mix 전략,Marketer
+272,제휴 마케팅(Affiliate Marketing),Marketer
+273,이벤트/프로모션 기획,Marketer
+274,광고 크리에이티브 기획,Marketer
+275,매체 믹스 전략,Marketer
+276,앱 스토어 최적화(ASO),Marketer
+277,Google Tag Manager (GTM),Marketer
+278,AppsFlyer,Marketer
+279,Branch,Marketer
+280,Airbridge,Marketer
+281,랜딩 페이지 최적화(LPO),Marketer
+282,전환율 최적화(CRO),Marketer
+283,챗봇 마케팅,Marketer
+284,B2B 마케팅,Marketer
+285,B2C 마케팅,Marketer
+286,PR(Public Relations),Marketer
+287,보도자료 작성,Marketer
+288,미디어 리서치,Marketer
+289,광고 예산 관리,Marketer
+290,데이터 대시보드 설계,Marketer
+291,사용자 설문조사,Marketer
+292,Hotjar,Marketer
+293,Beusable,Marketer
+294,Zapier,Marketer
+295,IFTTT,Marketer
+296,Notion,Marketer
+297,Slack,Marketer
+298,AI 마케팅 툴 활용,Marketer
+299,제품 전략 수립,Planner
+300,로드맵(Roadmap) 작성,Planner
+301,PRD(제품 요구사항서) 작성,Planner
+302,요구사항 분석,Planner
+303,사용자 리서치,Planner
+304,사용자 인터뷰 수행,Planner
+305,페르소나 정의,Planner
+306,고객 여정 지도(Customer Journey Map),Planner
+307,사용자 흐름도(User Flow) 작성,Planner
+308,와이어프레이밍,Planner
+309,프로토타입 제작,Planner
+310,Figma,Planner
+311,Miro,Planner
+312,Jira,Planner
+313,Confluence,Planner
+314,Trello,Planner
+315,Notion,Planner
+316,OKR 및 KPI 설정,Planner
+317,A/B 테스트 설계,Planner
+318,가설 수립 및 검증,Planner
+319,실험 설계(Experiment Design),Planner
+320,퍼널 분석,Planner
+321,코호트 분석,Planner
+322,LTV(고객 생애가치) 분석,Planner
+323,CAC(고객 획득 비용) 분석,Planner
+324,ARPU/ARPPU 분석,Planner
+325,매출 모델링,Planner
+326,시장 조사(시장 규모 추정),Planner
+327,경쟁사 분석(벤치마킹),Planner
+328,SWOT 분석,Planner
+329,비즈니스 모델 캔버스(BMC),Planner
+330,수익 모델 설계,Planner
+331,유저 스토리 작성,Planner
+332,스토리보드 작성,Planner
+333,기능 명세서 작성,Planner
+334,API 설계 이해,Planner
+335,데이터 시각화(대시보드 설계),Planner
+336,SQL,Planner
+337,Google Analytics(GA4),Planner
+338,Amplitude,Planner
+339,Mixpanel,Planner
+340,Looker/Looker Studio 사용,Planner
+341,Tableau,Planner
+342,BigQuery,Planner
+343,Excel 고급 함수/피벗 테이블,Planner
+344,Google Sheets 고급 사용,Planner
+345,데이터 파이프라인 이해(ETL 개념),Planner
+346,로그 분석,Planner
+347,유저 세그먼테이션,Planner
+348,퍼포먼스 마케팅,Planner
+349,ASO(앱스토어 최적화),Planner
+350,앱 출시(Go-to-Market) 전략,Planner
+351,온보딩 설계,Planner
+352,고객 유지(리텐션) 전략,Planner
+353,푸시 알림/메시징 전략,Planner
+354,이메일 마케팅,Planner
+355,CRM,Planner
+356,세그먼트/고객DB 운영,Planner
+357,파트너십 및 제휴 기획,Planner
+358,계약서 기본 이해(서비스 제휴),Planner
+359,지표 대시보드 설계,Planner
+360,A/B 테스트,Planner
+361,"우선순위 결정 프레임워크(ICE,RICE)",Planner
+362,스프린트 계획 및 운영,Planner
+363,백로그 관리,Planner
+364,스토리 포인트·에픽·스프린트,Planner
+365,버전 관리 (Git),Planner
+366,CI/CD,Planner
+367,QA 테스트 계획 수립,Planner
+368,서비스 운영 정책 수립,Planner
+369,CS 정책 및 프로세스 설계,Planner
+370,리스크 관리 및 완화 계획,Planner
+371,비용 산정 및 예산 관리,Planner
+372,성과 보고서 작성,Planner
+373,프로젝트 일정 관리(간트 차트 등),Planner
+374,린(Lean) 스타트업 기법,Planner
+375,MVP(최소 기능 제품) 기획,Planner
+376,사용성 테스트 설계,Planner
+377,정성적 데이터 분석(사용자 인터뷰 정리),Planner
+378,정량적 데이터 분석(지표 기반 인사이트 도출),Planner
+379,프라이싱 전략 수립,Planner
+380,시장 세분화(Segmentation) 전략,Planner
+381,제품 포지셔닝,Planner
+382,BX(브랜드 경험) 디자인,Planner
+383,서비스 확장성(Scale) 기획,Planner
+384,백엔드 아키텍처,Planner
+385,마이크로서비스 아키텍처,Planner
+386,REST API/GraphQL,Planner
+387,모바일 UX 기획,Planner
+388,웹 접근성(A11y),Planner
+389,반응형/적응형 디자인,Planner
+390,SLA/SLO 개념 및 지표 설계,Planner
+391,모니터링 지표 설계(Prometheus/Grafana),Planner
+392,비용 최적화,Planner
+393,AWS/GCP/Azure,Planner
+394,서비스 운영 자동화,Planner
+395,사용자 피드백 수집 및 분석,Planner
+396,설문조사 설계,Planner
+397,인터뷰 가이드 작성,Planner
+398,VOC(Voice of Customer) 분석,Planner
+399,데이터 기반 의사결정,Planner
+400,통계 기초(가설 검정 포함),Planner
+401,실험 통계 해석,Planner
+402,회귀분석 기초,Planner
+403,지표 기반 실무 의사결정 사례 작성,Planner
+404,유저 리서치 리포트 작성,Planner
+405,프레젠테이션(스토리텔링) 능력,Planner
+406,PowerPoint,Planner
+407,이해관계자 관리(Stakeholder Management),Planner
+408,협상 기법(벤더/파트너 협상),Planner
+409,법규 이해(개인정보보호법 기초),Planner
+410,보안 요구사항 이해(기본),Planner
+411,데이터 거버넌스 기초,Planner
+412,서비스 데모 및 시연 준비,Planner
