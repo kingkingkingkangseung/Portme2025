@@ -2,6 +2,7 @@ import csv
 import itertools
 import re
 from pathlib import Path
+import io
 from typing import Dict, Iterable, List, Optional, Tuple
 
 from django.core.management.base import BaseCommand, CommandError
@@ -14,13 +15,17 @@ from apps.profiles.models import (
 )
 
 
-def read_csv_rows(path: Path, *, encoding: Optional[str] = None) -> Iterable[Dict[str, str]]:
+def read_csv_rows(path: Path, *, encoding: Optional[str] = None, header_row: int = 1) -> Iterable[Dict[str, str]]:
     encodings = [encoding] if encoding else ["utf-8-sig", "cp949", "utf-8"]
     last_err = None
     for enc in encodings:
         try:
             with path.open("r", encoding=enc, newline="") as f:
-                reader = csv.DictReader(f)
+                lines = f.readlines()
+                if header_row > 1:
+                    lines = lines[header_row - 1 :]
+                data_stream = io.StringIO("".join(lines))
+                reader = csv.DictReader(data_stream)
                 # Normalize headers: lower + strip
                 reader.fieldnames = [
                     (h or "").strip().lower() for h in (reader.fieldnames or [])
@@ -59,6 +64,11 @@ class Command(BaseCommand):
         parser.add_argument("--encoding", type=str, default=None, help="Force CSV encoding (e.g., utf-8-sig, cp949)")
         parser.add_argument("--create-missing-role", action="store_true", help="Create JobRole if not exists when mapping")
         parser.add_argument("--dry-run", action="store_true", help="Validate without writing to DB")
+        # header rows (1-based). If provided, applies globally unless per-file is specified
+        parser.add_argument("--header-row", type=int, default=1, help="Header row index (1-based) for all CSVs")
+        parser.add_argument("--hard-header-row", type=int, default=None, help="Header row index for hard CSV")
+        parser.add_argument("--soft-header-row", type=int, default=None, help="Header row index for soft CSV")
+        parser.add_argument("--job-header-row", type=int, default=None, help="Header row index for jobroles CSV")
 
     def handle(self, *args, **opts):
         dry = opts.get("dry_run")
@@ -72,11 +82,16 @@ class Command(BaseCommand):
         with transaction.atomic():
             sid = transaction.savepoint()
 
+            global_header = int(opts.get("header_row") or 1)
+            hard_header = int(opts.get("hard_header_row") or global_header)
+            soft_header = int(opts.get("soft_header_row") or global_header)
+            job_header = int(opts.get("job_header_row") or global_header)
+
             # 1) HardSkill
             hard_path = opts.get("hard")
             if hard_path:
                 self.stdout.write(self.style.NOTICE(f"Loading hard skills: {hard_path}"))
-                for row in read_csv_rows(Path(hard_path), encoding=enc):
+                for row in read_csv_rows(Path(hard_path), encoding=enc, header_row=hard_header):
                     # tolerate headers: name, hard_skill_name, hard_skill, etc.
                     name = row.get("name") or row.get("hard_skill_name") or row.get("hard_skill_") or row.get("hard_skill")
                     if not name:
@@ -92,7 +107,7 @@ class Command(BaseCommand):
             soft_path = opts.get("soft")
             if soft_path:
                 self.stdout.write(self.style.NOTICE(f"Loading soft skills: {soft_path}"))
-                for row in read_csv_rows(Path(soft_path), encoding=enc):
+                for row in read_csv_rows(Path(soft_path), encoding=enc, header_row=soft_header):
                     name = row.get("name") or row.get("soft_skill_name") or row.get("soft_skill_") or row.get("soft_skill")
                     if not name:
                         continue
@@ -105,7 +120,7 @@ class Command(BaseCommand):
             jobroles_path = opts.get("jobroles")
             if jobroles_path:
                 self.stdout.write(self.style.NOTICE(f"Loading job roles: {jobroles_path}"))
-                for row in read_csv_rows(Path(jobroles_path), encoding=enc):
+                for row in read_csv_rows(Path(jobroles_path), encoding=enc, header_row=job_header):
                     name = row.get("name") or row.get("job_name") or row.get("role_name")
                     if not name:
                         continue
@@ -182,4 +197,3 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING("Dry-run: rolled back all changes."))
             else:
                 transaction.savepoint_commit(sid)
-
