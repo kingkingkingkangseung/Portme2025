@@ -9,7 +9,8 @@ from dotenv import load_dotenv
 # ───────────────────────────────
 # 기본 설정
 # ───────────────────────────────
-load_dotenv(BASE_DIR / ".env")
+# Load .env from the project root reliably, regardless of working dir
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,6 +26,8 @@ ALLOWED_HOSTS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://react-porters-grove.vercel.app",
+    "https://grove.beer",
+    "https://www.grove.beer",
     "http://52.79.131.1",
     "https://52.79.131.1",
 ]
@@ -89,6 +92,21 @@ CORS_ALLOW_ALL_ORIGINS = DEBUG  # 개발 중엔 True, 배포에선 아래 Origin
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://react-porters-grove.vercel.app",
+]
+
+# Explicitly allow methods/headers to ensure proxies/nginx don't block preflight
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+CORS_ALLOW_HEADERS = [
+    "Authorization",
+    "Content-Type",
+    "X-CSRFToken",
 ]
 
 # ───────────────────────────────
