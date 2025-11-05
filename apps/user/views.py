@@ -99,6 +99,9 @@ class CustomLoginView(LoginView):
 
 # if you want to use Authorization Code Grant, use this
 class GoogleLogin(SocialLoginView):
+    # Allow unauthenticated users to post authorization code
+    permission_classes = [AllowAny]
+    authentication_classes = []
     adapter_class = GoogleOAuth2Adapter
     callback_url = settings.GOOGLE_REDIRECT_URI
     client_class = OAuth2Client
