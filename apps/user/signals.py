@@ -13,6 +13,6 @@ def password_reset_token_created(sender, instance, reset_password_token, **kwarg
     send_mail(
         subject="비밀번호 재설정 안내",
         message=f"아래 링크를 눌러 새 비밀번호를 설정하세요:\n\n{reset_url}",
-        from_email="noreply@yourapp.com",
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[reset_password_token.user.email],
     )

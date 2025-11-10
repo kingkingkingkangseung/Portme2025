@@ -41,6 +41,11 @@ urlpatterns = [
     path("api/auth/login/", CustomLoginView.as_view(), name="rest_login"),
     path("api/auth/registration/", CustomRegisterView.as_view(), name="rest_register"),
     path("api/auth/", include("dj_rest_auth.urls")),
+    # Password reset (django-rest-passwordreset)
+    path(
+        "api/password_reset/",
+        include("django_rest_passwordreset.urls", namespace="password_reset"),
+    ),
 
     # Apps
     path("api/profiles/", include("apps.profiles.urls")),
