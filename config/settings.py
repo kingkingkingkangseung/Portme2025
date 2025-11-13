@@ -250,7 +250,8 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-ACCOUNT_ADAPTER = "apps.user.adapters.CustomAccountAdapter"
+#ACCOUNT_ADAPTER = "apps.user.adapters.CustomAccountAdapter"
+ACCOUNT_ADAPTER = "allauth.account.adapter.DefaultAccountAdapter"
 
 # ───────────────────────────────
 # DRF / JWT

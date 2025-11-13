@@ -29,6 +29,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.authentication import BasicAuthentication  # (빈 auth 방지용 선택사항)
+
 
 User = get_user_model()
 
@@ -96,36 +98,51 @@ class CustomLoginView(LoginView):
 
 
 # ==================== GOOGLE ====================
+class GoogleLoginCode(SocialLoginView):
+    """
+    프론트에서 전달한 redirect_uri를 그대로 사용해 Authorization Code 교환.
+    프론트 요청 형식: POST /api/v1/auth/google/ { code, redirect_uri }
+    응답: { access, refresh, ... }
+    """
+    permission_classes = [AllowAny]
+    authentication_classes = []  # 기본 IsAuthenticated 무시
+    adapter_class = GoogleOAuth2Adapter
+    client_class = OAuth2Client
+    callback_url = settings.GOOGLE_REDIRECT_URI  # 기본값 (없을 때 대비)
+
+    def get_callback_url(self, request, *args, **kwargs):
+        # 프론트가 보내준 redirect_uri가 있으면 그걸 우선 사용
+        return request.data.get("redirect_uri") or request.query_params.get("redirect_uri") or self.callback_url
 
 # if you want to use Authorization Code Grant, use this
-class GoogleLogin(SocialLoginView):
-    # Allow unauthenticated users to post authorization code
-    permission_classes = [AllowAny]
-    authentication_classes = []
-    adapter_class = GoogleOAuth2Adapter
-    callback_url = settings.GOOGLE_REDIRECT_URI
-    client_class = OAuth2Client
+# class GoogleLogin(SocialLoginView):
+#     # Allow unauthenticated users to post authorization code
+#     permission_classes = [AllowAny]
+#     authentication_classes = []
+#     adapter_class = GoogleOAuth2Adapter
+#     callback_url = settings.GOOGLE_REDIRECT_URI
+#     client_class = OAuth2Client
 
 
-class GoogleLoginCallback(APIView):
-    permission_classes = [AllowAny]
-    def get(self, request, *args, **kwargs):
-        """Accept callback request from Google OAuth screen.
-        Extract code and send a POST request to Google authentication endpoint.
+# class GoogleLoginCallback(APIView):
+#     permission_classes = [AllowAny]
+#     def get(self, request, *args, **kwargs):
+#         """Accept callback request from Google OAuth screen.
+#         Extract code and send a POST request to Google authentication endpoint.
 
-        If you are building a fullstack application (eg. with React app next to Django)
-        you can place this endpoint in your frontend application to receive
-        the JWT tokens there - and store them in the state
-        """
+#         If you are building a fullstack application (eg. with React app next to Django)
+#         you can place this endpoint in your frontend application to receive
+#         the JWT tokens there - and store them in the state
+#         """
 
-        code = request.GET.get("code")
+#         code = request.GET.get("code")
 
-        if code is None:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+#         if code is None:
+#             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        token_endpoint_url = request.build_absolute_uri(reverse("google_login"))
+#         token_endpoint_url = request.build_absolute_uri(reverse("google_login"))
 
-        response = requests.post(url=token_endpoint_url, data={"code": code})
+#         response = requests.post(url=token_endpoint_url, data={"code": code})
 
-        return Response(response.json(), status=status.HTTP_200_OK)
+#         return Response(response.json(), status=status.HTTP_200_OK)
 
