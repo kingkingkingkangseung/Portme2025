@@ -13,7 +13,7 @@ from urllib.parse import urlencode
 from urllib.parse import urljoin
 
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client as _BaseOAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
 
 from django.conf import settings
@@ -35,6 +35,14 @@ import logging, traceback
 
 
 User = get_user_model()
+
+class PatchedOAuth2Client(_BaseOAuth2Client):
+    """일부 dj-rest-auth 버전에서 scope_delimiter를 positional+keyword로
+    이중 전달하는 버그를 우회하기 위한 패치용 클라이언트."""
+    def __init__(self, *args, **kwargs):
+        # keyword로 들어온 scope_delimiter는 버리면 안전
+        kwargs.pop("scope_delimiter", None)
+        super().__init__(*args, **kwargs)
 
 # ==================== 공통 유틸 ====================
 
@@ -109,7 +117,7 @@ class GoogleLoginCode(SocialLoginView):
     permission_classes = [AllowAny]
     authentication_classes = []  # 기본 IsAuthenticated 무시
     adapter_class = GoogleOAuth2Adapter
-    client_class = OAuth2Client
+    client_class = PatchedOAuth2Client
     callback_url = settings.GOOGLE_REDIRECT_URI  # 기본값 (없을 때 대비)
 
     def get_callback_url(self, request, *args, **kwargs):
