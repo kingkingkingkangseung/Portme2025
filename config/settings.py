@@ -205,6 +205,7 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
+SOCIALACCOUNT_AUTO_SIGNUP = True
 
 # Email (SMTP) settings — read from .env
 # If not set, use console backend in DEBUG; SMTP in production by default
@@ -250,8 +251,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-#ACCOUNT_ADAPTER = "apps.user.adapters.CustomAccountAdapter"
-ACCOUNT_ADAPTER = "allauth.account.adapter.DefaultAccountAdapter"
+ACCOUNT_ADAPTER = "apps.user.adapters.CustomAccountAdapter"
 
 # ───────────────────────────────
 # DRF / JWT

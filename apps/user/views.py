@@ -31,6 +31,8 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.authentication import BasicAuthentication  # (빈 auth 방지용 선택사항)
 
+import logging, traceback
+
 
 User = get_user_model()
 
@@ -113,6 +115,19 @@ class GoogleLoginCode(SocialLoginView):
     def get_callback_url(self, request, *args, **kwargs):
         # 프론트가 보내준 redirect_uri가 있으면 그걸 우선 사용
         return request.data.get("redirect_uri") or request.query_params.get("redirect_uri") or self.callback_url
+    
+    # ★ 예외 내용 바로 확인용 임시 래핑
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except Exception as e:
+            logging.exception("GoogleLoginCode error")
+            return Response(
+                {"detail": "google exchange failed",
+                 "error": str(e),
+                 "trace": traceback.format_exc()[:4000]},  # 너무 길면 자르기
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 # if you want to use Authorization Code Grant, use this
 # class GoogleLogin(SocialLoginView):
