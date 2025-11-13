@@ -1,71 +1,68 @@
 # apps/user/adapters.py
 import re, secrets, string
 from allauth.account.adapter import DefaultAccountAdapter
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from django.contrib.auth import get_user_model
 
-def _slugify_username_base(s: str) -> str:
-    s = s or "user"
-    s = s.lower()
-    s = re.sub(r"[^a-z0-9_]+", "_", s)
-    return s[:20] or "user"
+User = get_user_model()
 
-def _rand(n=6):
-    return ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(n))
+# def _slugify_username_base(s: str) -> str:
+#     s = s or "user"
+#     s = s.lower()
+#     s = re.sub(r"[^a-z0-9_]+", "_", s)
+#     return s[:20] or "user"
+
+# def _rand(n=6):
+#     return ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(n))
 
 class CustomAccountAdapter(DefaultAccountAdapter):
+    pass
+    # """
+    # 소셜/일반 회원가입 모두에서 username 비어있으면 안전하게 생성
+    # """
+    # def populate_username(self, request, user):
+    #     # allauth가 내부에서 여러 번 호출하므로, 있으면 그대로 둔다
+    #     if getattr(user, "username", None):
+    #         return
+
+    #     base = None
+    #     # 이메일이 있으면 로컬파트 사용
+    #     if getattr(user, "email", None):
+    #         base = user.email.split("@")[0]
+
+    #     base = _slugify_username_base(base)
+    #     candidate = base
+    #     from django.contrib.auth import get_user_model
+    #     User = get_user_model()
+    #     i = 0
+    #     while User.objects.filter(username=candidate).exists():
+    #         i += 1
+    #         candidate = f"{base[:14]}_{_rand(5)}"
+    #     user.username = candidate
+
+class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     """
-    소셜/일반 회원가입 모두에서 username 비어있으면 안전하게 생성
+    소셜 최초 로그인 시, 같은 이메일의 기존 유저가 있으면
+    그 유저에 소셜 계정을 자동 연결한다.
     """
-    def populate_username(self, request, user):
-        # allauth가 내부에서 여러 번 호출하므로, 있으면 그대로 둔다
-        if getattr(user, "username", None):
+    def pre_social_login(self, request, sociallogin):
+        # 이미 연결되어 있으면 패스
+        if sociallogin.is_existing:
             return
 
-        base = None
-        # 이메일이 있으면 로컬파트 사용
-        if getattr(user, "email", None):
-            base = user.email.split("@")[0]
+        # 소셜 프로필에서 이메일 가져오기
+        email = None
+        try:
+            email = sociallogin.account.extra_data.get("email")
+        except Exception:
+            pass
+        if not email:
+            return
 
-        base = _slugify_username_base(base)
-        candidate = base
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        i = 0
-        while User.objects.filter(username=candidate).exists():
-            i += 1
-            candidate = f"{base[:14]}_{_rand(5)}"
-        user.username = candidate
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return
 
-# # apps/user/adapters.py
-# from allauth.account.adapter import DefaultAccountAdapter
-
-# class CustomAccountAdapter(DefaultAccountAdapter):
-#     def save_user(self, request, user, form, commit=True):
-#         """
-#         form이 allauth 폼이 아니라 dj-rest-auth의 RegisterSerializer인 경우를 처리하도록 오버라이드
-#         """
-#         # form이 serializer라면 validated_data에서, 아니면 form.cleaned_data에서 가져오기
-#         data = {}
-#         if hasattr(form, 'validated_data'):
-#             data = form.validated_data
-#         else:
-#             data = form.cleaned_data
-
-#         # 필수 필드 세팅
-#         user.username = data.get('username', '')
-#         user.email = data.get('email', '')
-
-#         # 비밀번호 세팅 (allauth의 기본 로직을 쓸 수도 있지만, 안전하게 직접)
-#         password = data.get('password1') or data.get('password')
-#         if password:
-#             user.set_password(password)
-
-#         # phone 필드가 있으면 저장
-#         phone = data.get('phone')
-#         if phone:
-#             user.phone = phone
-
-#         # 기타 추가 필드도 여기에…
-
-#         if commit:
-#             user.save()
-#         return user
+        # 기존 유저에 소셜 계정을 연결
+        sociallogin.connect(request, user)

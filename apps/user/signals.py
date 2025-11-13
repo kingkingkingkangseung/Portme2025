@@ -2,6 +2,7 @@ from django.core.mail import send_mail
 from django.dispatch import receiver
 from django_rest_passwordreset.signals import reset_password_token_created
 from django.conf import settings
+from allauth.socialaccount.signals import social_account_added
 
 @receiver(reset_password_token_created)
 def password_reset_token_created(sender, instance, reset_password_token, **kwargs):
@@ -22,3 +23,14 @@ def password_reset_token_created(sender, instance, reset_password_token, **kwarg
     except Exception:
         # 로깅 시스템이 있다면 여기서 기록하세요 (Sentry/로그 등)
         pass
+
+@receiver(social_account_added)
+def fill_profile_on_social_signup(request, sociallogin, **kwargs):
+    user = sociallogin.user
+    data = sociallogin.account.extra_data or {}
+    full_name = data.get("name") or f"{data.get('given_name','')} {data.get('family_name','')}".strip()
+    
+    p = getattr(user, "profile", None)
+    if p and not p.full_name:
+        p.full_name = full_name or p.full_name
+        p.save()
