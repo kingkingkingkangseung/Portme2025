@@ -33,12 +33,30 @@ class ProfileLinkWriteSerializer(serializers.Serializer):
     order = serializers.IntegerField(required=False, min_value=0)
 
 
+DATE_INPUT_FORMATS = ["%Y-%m-%d", "%Y.%m.%d", "%Y-%m", "%Y.%m"]
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     job_role = JobRoleSerializer(read_only=True)
     job_role_name = serializers.CharField(source="job_role.name", read_only=True)
     job_role_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     links = ProfileLinkSerializer(many=True, read_only=True)
     link_items = ProfileLinkWriteSerializer(many=True, write_only=True, required=False)
+    birth_date = serializers.DateField(
+        required=False,
+        allow_null=True,
+        input_formats=DATE_INPUT_FORMATS[:2],
+    )
+    admission_date = serializers.DateField(
+        required=False,
+        allow_null=True,
+        input_formats=DATE_INPUT_FORMATS,
+    )
+    graduation_date = serializers.DateField(
+        required=False,
+        allow_null=True,
+        input_formats=DATE_INPUT_FORMATS,
+    )
 
     class Meta:
         model = Profile
