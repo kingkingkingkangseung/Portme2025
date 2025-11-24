@@ -138,12 +138,14 @@ class GoogleLoginCode(APIView):
     def post(self, request, *args, **kwargs):
         code = request.data.get("code")
         redirect_uri = request.data.get("redirect_uri")
+        code_verifier = request.data.get("code_verifier")
         access_token = request.data.get("access_token")
         id_token = request.data.get("id_token")
 
         if code:
             try:
-                token_payload = self._exchange_code_for_tokens(code, redirect_uri)
+                logger.info("google code exchange", extra={"code_prefix": (code or "")[:12], "redirect_uri": redirect_uri})
+                token_payload = self._exchange_code_for_tokens(code, redirect_uri, code_verifier)
                 access_token = token_payload.get("access_token")
                 id_token = token_payload.get("id_token")
             except Exception as exc:
@@ -263,7 +265,9 @@ class GoogleLoginCode(APIView):
         # 필요하다면 여기서도 aud 검증을 위해 tokeninfo(access_token=...) 한번 더 호출 가능
         return data
 
-    def _exchange_code_for_tokens(self, code: str, redirect_uri: str | None) -> dict:
+    def _exchange_code_for_tokens(
+        self, code: str, redirect_uri: str | None, code_verifier: str | None
+    ) -> dict:
         if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
             raise Exception("google client 설정이 없습니다.")
 
@@ -274,6 +278,9 @@ class GoogleLoginCode(APIView):
             "redirect_uri": redirect_uri or settings.GOOGLE_REDIRECT_URI,
             "grant_type": "authorization_code",
         }
+        if code_verifier:
+            payload["code_verifier"] = code_verifier
+
         resp = requests.post("https://oauth2.googleapis.com/token", data=payload, timeout=5)
         data = resp.json()
         if resp.status_code != 200:
