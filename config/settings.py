@@ -254,7 +254,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-ACCOUNT_ADAPTER = "apps.user.adapters.CustomAccountAdapter"
+#ACCOUNT_ADAPTER = "apps.user.adapters.CustomAccountAdapter"
 SOCIALACCOUNT_ADAPTER = "apps.user.adapters.CustomSocialAccountAdapter"
 
 # ───────────────────────────────
