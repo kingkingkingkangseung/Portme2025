@@ -37,6 +37,15 @@ class JobRole(models.Model):
 
 
 class Profile(models.Model):
+    class GraduationStatus(models.TextChoices):
+        ENROLLED = "재학중", "재학중"
+        GRADUATED = "졸업", "졸업"
+        COMPLETED = "수료", "수료"
+        EXPECTED = "졸업예정", "졸업예정"
+        STOPPED = "중퇴", "중퇴"
+        LEAVE = "휴학", "휴학"
+        WITHDRAWN = "자퇴", "자퇴"
+
     """사용자 프로필 + 포트폴리오 상단 카드 정보."""
 
     user = models.OneToOneField(
@@ -56,6 +65,14 @@ class Profile(models.Model):
     school_name = models.CharField("학교명", max_length=120, blank=True)
     admission_date = models.DateField("입학 연월", null=True, blank=True)
     graduation_date = models.DateField("졸업 연월", null=True, blank=True)
+    graduation_status = models.CharField(
+        "졸업 여부",
+        max_length=30,
+        blank=True,
+        choices=GraduationStatus.choices,
+    )
+    gpa = models.CharField("학점", max_length=20, blank=True, null=True)
+    gpa_total = models.CharField("총점", max_length=20, blank=True, null=True)
 
     job_role = models.ForeignKey(
         JobRole,
@@ -64,6 +81,7 @@ class Profile(models.Model):
         on_delete=models.SET_NULL,
         verbose_name="직무",
     )
+    job_role_name = models.CharField("직무명(직접 입력)", max_length=120, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -86,6 +104,25 @@ class ProfileLink(models.Model):
     def __str__(self):
         base = self.label or self.url
         return f"{self.profile_id} - {base}"
+
+
+class ProfileMajor(models.Model):
+    class MajorType(models.TextChoices):
+        MAJOR = "major", "주전공"
+        DOUBLE = "double", "복수전공"
+        MINOR = "minor", "부전공"
+        OTHER = "other", "기타"
+
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="majors")
+    major_type = models.CharField("전공 구분", max_length=20, choices=MajorType.choices, blank=True)
+    major_name = models.CharField("전공명", max_length=120)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "id"]
+
+    def __str__(self):
+        return f"{self.profile_id} - {self.major_name}"
 
 
 # ============================

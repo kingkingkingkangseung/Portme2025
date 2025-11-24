@@ -2,7 +2,7 @@
 from rest_framework import serializers
 
 from .models import (
-    Profile, JobRole, ProfileLink,
+    Profile, JobRole, ProfileLink, ProfileMajor,
     JobCategory, HardSkill, SoftSkill,
     JobHardSkill, JobSoftSkill,
 )
@@ -33,6 +33,18 @@ class ProfileLinkWriteSerializer(serializers.Serializer):
     order = serializers.IntegerField(required=False, min_value=0)
 
 
+class ProfileMajorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfileMajor
+        fields = ("id", "major_type", "major_name", "order")
+
+
+class ProfileMajorWriteSerializer(serializers.Serializer):
+    major_type = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    major_name = serializers.CharField(max_length=120)
+    order = serializers.IntegerField(required=False, min_value=0)
+
+
 DATE_INPUT_FORMATS = ["%Y-%m-%d", "%Y.%m.%d", "%Y-%m", "%Y.%m"]
 
 
@@ -44,11 +56,10 @@ class OptionalDateField(serializers.DateField):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    job_role = JobRoleSerializer(read_only=True)
-    job_role_name = serializers.CharField(source="job_role.name", read_only=True)
-    job_role_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     links = ProfileLinkSerializer(many=True, read_only=True)
     link_items = ProfileLinkWriteSerializer(many=True, write_only=True, required=False)
+    majors = ProfileMajorSerializer(many=True, read_only=True)
+    major_items = ProfileMajorWriteSerializer(many=True, write_only=True, required=False)
     birth_date = OptionalDateField(
         required=False,
         allow_null=True,
@@ -72,36 +83,23 @@ class ProfileSerializer(serializers.ModelSerializer):
             "full_name", "bio", "avatar",
             "birth_date", "phone_number", "contact_email",
             "school_name", "admission_date", "graduation_date",
-            "job_role", "job_role_name", "job_role_id",
+            "graduation_status", "gpa", "gpa_total",
+            "job_role_name",
             "links", "link_items",
+            "majors", "major_items",
             "created_at", "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "job_role", "job_role_name", "links"]
+        read_only_fields = ["id", "created_at", "updated_at", "links", "majors"]
         extra_kwargs = {
             "contact_email": {"allow_blank": True, "required": False},
             "phone_number": {"allow_blank": True, "required": False},
             "full_name": {"required": False},
             "bio": {"required": False},
+            "job_role_name": {"allow_blank": True, "required": False},
+            "graduation_status": {"allow_blank": True, "required": False},
+            "gpa": {"required": False, "allow_null": True},
+            "gpa_total": {"required": False, "allow_null": True},
         }
-
-    def validate(self, attrs):
-        role_id = attrs.pop("job_role_id", None)
-        if role_id is None:
-            raw = self.initial_data.get("job_role")
-            if isinstance(raw, int):
-                role_id = raw
-        if role_id is not None:
-            if role_id == "" or role_id is False:
-                role_id = None
-        if role_id is not None:
-            try:
-                role_obj = JobRole.objects.get(pk=role_id, is_active=True)
-            except JobRole.DoesNotExist:
-                raise serializers.ValidationError({"job_role_id": "유효한 직무가 아닙니다."})
-            attrs["job_role"] = role_obj
-        elif "job_role" in attrs and attrs["job_role"] is None:
-            attrs["job_role"] = None
-        return attrs
 
     def _sync_links(self, profile: Profile, link_items):
         if link_items is None:
@@ -126,16 +124,43 @@ class ProfileSerializer(serializers.ModelSerializer):
         if new_links:
             ProfileLink.objects.bulk_create(new_links)
 
+    def _sync_majors(self, profile: Profile, major_items):
+        if major_items is None:
+            return
+        profile.majors.all().delete()
+        bulk = []
+        for idx, payload in enumerate(major_items):
+            name = payload.get("major_name")
+            if not name:
+                continue
+            order = payload.get("order")
+            if order is None:
+                order = idx
+            bulk.append(
+                ProfileMajor(
+                    profile=profile,
+                    major_type=payload.get("major_type", ""),
+                    major_name=name,
+                    order=order,
+                )
+            )
+        if bulk:
+            ProfileMajor.objects.bulk_create(bulk)
+
     def create(self, validated_data):
         link_items = validated_data.pop("link_items", None)
+        major_items = validated_data.pop("major_items", None)
         profile = super().create(validated_data)
         self._sync_links(profile, link_items)
+        self._sync_majors(profile, major_items)
         return profile
 
     def update(self, instance, validated_data):
         link_items = validated_data.pop("link_items", None)
+        major_items = validated_data.pop("major_items", None)
         profile = super().update(instance, validated_data)
         self._sync_links(profile, link_items)
+        self._sync_majors(profile, major_items)
         return profile
 
 
