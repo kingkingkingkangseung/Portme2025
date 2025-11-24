@@ -281,7 +281,7 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-REST_AUTH = {"USE_JWT": True}
-REST_AUTH_REGISTER_SERIALIZERS = {
-    "REGISTER_SERIALIZER": "apps.user.serializers.RegisterSerializer"
+REST_AUTH = {
+    "USE_JWT": True,
+    "REGISTER_SERIALIZER": "apps.user.serializers.RegisterSerializer",
 }
