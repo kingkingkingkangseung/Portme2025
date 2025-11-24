@@ -1,8 +1,16 @@
 from rest_framework import serializers
 from .models import (
-    Activity, ActivityMemo, ActivityCategory, Tag, ActivityRole,
-    Award, Certification, GlobalExp, ForeignLang,
-    ActivityHardSkill, ActivitySoftSkill,
+    Activity,
+    ActivityMemo,
+    ActivityCategory,
+    Tag,
+    ActivityRole,
+    Award,
+    Certification,
+    GlobalExp,
+    ForeignLang,
+    ActivityHardSkill,
+    ActivitySoftSkill,
 )
 from apps.profiles.models import HardSkill, SoftSkill
 
@@ -35,12 +43,9 @@ class ActivityRoleSerializer(serializers.ModelSerializer):
 
 # ---- Activity ----
 class ActivitySerializer(serializers.ModelSerializer):
+    category = ActivityCategorySerializer(read_only=True)
     memos = ActivityMemoSerializer(many=True, read_only=True)
     roles = ActivityRoleSerializer(many=True, read_only=True)
-    category = ActivityCategorySerializer(read_only=True)
-    tags = TagSerializer(many=True, read_only=True)
-    primary_tags = TagSerializer(many=True, read_only=True)
-    secondary_tags = TagSerializer(many=True, read_only=True)
 
     category_id = serializers.PrimaryKeyRelatedField(
         queryset=ActivityCategory.objects.filter(is_active=True),
@@ -62,27 +67,40 @@ class ActivitySerializer(serializers.ModelSerializer):
         model = Activity
         fields = [
             "id",
-            "title", "period_start", "period_end", "organization",
-            "plan_count", "design_count", "dev_count",
-            "description", "role",
-            "outcome", "learned",
-            "attachment", "link_url",
-            "subject", "host", "work_title",
-            "participation_type", "is_awarded", "award_detail",
-            "situation", "task_detail", "action_detail", "result_detail", "takeaway",
-            "category", "category_id",
-            "tags", "tag_ids",
-            "primary_tags", "secondary_tags",
-            "primary_tag_ids", "secondary_tag_ids",
-            "roles", "role_items",
-            "status", "board_order", "is_deleted",
-            "created_at", "updated_at",
-            "memos",
+            # 기본 정보 (두 번째 화면 상단)
+            "title",
+            "period_start",
+            "period_end",
+            "organization",
+            "host",
+            "subject",
+            "role",
+            "work_title",
+            "participation_type",
+            "is_awarded",
+            "award_detail",
+            # 세부 내용 (Situation / Task / Action / Result / Taken)
+            "situation",
+            "task_detail",
+            "action_detail",
+            "result_detail",
+            "takeaway",
+            # 정리 후 배운 점 / 첨부 / 링크
+            "learned",
+            "attachment",
+            "link_url",
+            # 활동 종류(프로젝트/공모전/교내활동 등)
+            "category",
+            "category_id",
+            # 내부 관리용
+            "created_at",
+            "updated_at",
         ]
         read_only_fields = [
-            "id", "created_at", "updated_at",
-            "memos", "category", "tags", "roles",
-            "primary_tags", "secondary_tags",
+            "id",
+            "created_at",
+            "updated_at",
+            "category",
         ]
 
     def _save_roles(self, activity, validated_data):
