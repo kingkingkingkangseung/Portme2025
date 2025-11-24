@@ -32,6 +32,11 @@ class Tag(models.Model):
 
 
 class Activity(models.Model):
+    class Status(models.TextChoices):
+        IN_PROGRESS = "in_progress", "진행 중"
+        HIGHLIGHT = "highlight", "주요 스펙"
+        COMPLETED = "completed", "완료"
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="activities")
 
     # 기본 정보
@@ -44,6 +49,27 @@ class Activity(models.Model):
     attachment   = models.FileField("첨부파일", upload_to="activity_attachments/", blank=True, null=True)
 
     # 추가
+    subject      = models.CharField("주제", max_length=200, blank=True)
+    host         = models.CharField("주최/주관", max_length=200, blank=True)
+    work_title   = models.CharField("출품작/프로젝트명", max_length=200, blank=True)
+    participation_type = models.CharField(
+        "참여 형태",
+        max_length=20,
+        choices=(
+            ("team", "팀"),
+            ("individual", "개인"),
+        ),
+        blank=True,
+    )
+    is_awarded = models.BooleanField("수상 여부", default=False)
+    award_detail = models.CharField("수상 내역", max_length=200, blank=True)
+
+    situation = models.TextField("상황(Situation)", blank=True)
+    task_detail = models.TextField("과제(Task)", blank=True)
+    action_detail = models.TextField("행동(Action)", blank=True)
+    result_detail = models.TextField("결과(Result)", blank=True)
+    takeaway = models.TextField("교훈(Takeaway)", blank=True)
+
     organization = models.CharField("소속 팀/회사", max_length=120, blank=True)
     plan_count   = models.PositiveSmallIntegerField(default=0)
     design_count = models.PositiveSmallIntegerField(default=0)
@@ -58,6 +84,15 @@ class Activity(models.Model):
 
     primary_tags   = models.ManyToManyField("Tag", blank=True, related_name="primary_activities")
     secondary_tags = models.ManyToManyField("Tag", blank=True, related_name="secondary_activities")
+
+    status = models.CharField(
+        "보드 상태",
+        max_length=20,
+        choices=Status.choices,
+        default=Status.IN_PROGRESS,
+    )
+    board_order = models.PositiveIntegerField("보드 정렬", default=0)
+    is_deleted = models.BooleanField("삭제 여부", default=False)
 
     created_at   = models.DateTimeField(auto_now_add=True)
     updated_at   = models.DateTimeField(auto_now=True)

@@ -47,12 +47,6 @@ class JobRoleListAPIView(generics.ListAPIView):
         group = self.request.query_params.get("group")  # dev/design/pm/biz/etc
         return qs.filter(group=group).order_by("order", "name") if group else qs
 
-class LevelListAPIView(APIView):
-    permission_classes = [permissions.AllowAny]
-    def get(self, request):
-        data = [{"value": v, "label": l} for v, l in Profile.Level.choices]
-        return Response(data)
-
 
 # ---------- ERD 확장: 직무/스킬 ----------
 

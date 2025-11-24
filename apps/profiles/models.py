@@ -45,12 +45,16 @@ class Profile(models.Model):
         related_name="profile",
     )
 
+<<<<<<< HEAD
     # 기본 프로필 정보
     display_name = models.CharField("표시 이름", max_length=50, blank=True)
+=======
+    full_name = models.CharField("이름", max_length=50, blank=True)
+>>>>>>> eabf36c ( migrations 수정)
     bio = models.TextField("소개", blank=True)
     avatar = models.ImageField("아바타", upload_to="avatars/", blank=True, null=True)
-    website = models.URLField("웹사이트", blank=True)
 
+<<<<<<< HEAD
     # 사용자 카드(요약 영역)
     full_name = models.CharField("이름", max_length=50, blank=True)
     github_linked = models.BooleanField("깃허브 연동 여부", default=False)
@@ -71,6 +75,15 @@ class Profile(models.Model):
     birth_date = models.DateField("생년월일", null=True, blank=True)
     phone_number = models.CharField("전화번호", max_length=20, blank=True)
     email = models.EmailField("이메일", blank=True)
+=======
+    birth_date = models.DateField("생년월일", null=True, blank=True)
+    phone_number = models.CharField("전화번호", max_length=20, blank=True)
+    contact_email = models.EmailField("연락 이메일", blank=True)
+
+    school_name = models.CharField("학교명", max_length=120, blank=True)
+    admission_date = models.DateField("입학 연월", null=True, blank=True)
+    graduation_date = models.DateField("졸업 연월", null=True, blank=True)
+>>>>>>> eabf36c ( migrations 수정)
 
     job_role = models.ForeignKey(
         JobRole,
@@ -85,6 +98,22 @@ class Profile(models.Model):
 
     def __str__(self) -> str:  # pragma: no cover - display only
         return f"{self.user.username} - Profile"
+
+
+class ProfileLink(models.Model):
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name="links"
+    )
+    label = models.CharField("링크 이름", max_length=50, blank=True)
+    url = models.URLField("URL")
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "id"]
+
+    def __str__(self):
+        base = self.label or self.url
+        return f"{self.profile_id} - {base}"
 
 
 # ============================

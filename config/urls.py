@@ -56,6 +56,7 @@ urlpatterns = [
     path("api/activities/", include("apps.activity.urls")),
     path("api/portfolios/", include("apps.portfolio.urls")),
     path("api/community/", include("apps.community.urls")),
+    path("api/dashboard/", include("apps.dashboard.urls")),
 
     # Router endpoints
     path("api/", include(router.urls)),

@@ -17,7 +17,20 @@ class ActivityListCreateAPIView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Activity.objects.filter(user=self.request.user).order_by("-updated_at")
+        qs = Activity.objects.filter(user=self.request.user, is_deleted=False).order_by("-updated_at")
+
+        category_id = self.request.query_params.get("category_id")
+        category_key = self.request.query_params.get("category")
+        status_param = self.request.query_params.get("status")
+
+        if category_id:
+            qs = qs.filter(category_id=category_id)
+        if category_key:
+            qs = qs.filter(category__key=category_key)
+        if status_param:
+            qs = qs.filter(status=status_param)
+
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

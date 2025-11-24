@@ -1,7 +1,7 @@
 # apps/profiles/urls.py
 from django.urls import path
 from .views import (
-    MyProfileAPIView, JobRoleListAPIView, LevelListAPIView,
+    MyProfileAPIView, JobRoleListAPIView,
     JobCategoryListAPIView, HardSkillListAPIView, SoftSkillListAPIView,
     JobRoleSkillsAPIView,
 )
@@ -9,7 +9,6 @@ from .views import (
 urlpatterns = [
     path('me/', MyProfileAPIView.as_view(), name='my-profile'),
     path('options/job-roles/', JobRoleListAPIView.as_view(), name='job-role-list'),
-    path('options/levels/', LevelListAPIView.as_view(), name='level-list'),
     # ERD 확장: 직무/스킬
     path('options/job-categories/', JobCategoryListAPIView.as_view(), name='job-category-list'),
     path('options/hard-skills/', HardSkillListAPIView.as_view(), name='hard-skill-list'),

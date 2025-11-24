@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "apps.portfolio",
     "apps.activity",
     "apps.community",
+    "apps.dashboard",
 ]
 
 # ───────────────────────────────
@@ -254,7 +255,11 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+<<<<<<< HEAD
 #ACCOUNT_ADAPTER = "apps.user.adapters.CustomAccountAdapter"
+=======
+# ACCOUNT_ADAPTER = "apps.user.adapters.CustomAccountAdapter"
+>>>>>>> eabf36c ( migrations 수정)
 SOCIALACCOUNT_ADAPTER = "apps.user.adapters.CustomSocialAccountAdapter"
 
 # ───────────────────────────────
