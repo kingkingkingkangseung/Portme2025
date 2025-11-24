@@ -13,6 +13,7 @@ from .models import (
     ActivitySoftSkill,
 )
 from apps.profiles.models import HardSkill, SoftSkill
+from apps.dashboard.models import ExperienceNote
 
 
 # ---- 기본 ----
@@ -46,6 +47,7 @@ class ActivitySerializer(serializers.ModelSerializer):
     category = ActivityCategorySerializer(read_only=True)
     memos = ActivityMemoSerializer(many=True, read_only=True)
     roles = ActivityRoleSerializer(many=True, read_only=True)
+    experience_notes = serializers.SerializerMethodField(read_only=True)
 
     category_id = serializers.PrimaryKeyRelatedField(
         queryset=ActivityCategory.objects.filter(is_active=True),
@@ -92,15 +94,13 @@ class ActivitySerializer(serializers.ModelSerializer):
             # 활동 종류(프로젝트/공모전/교내활동 등)
             "category",
             "category_id",
-            # 내부 관리용
-            "created_at",
-            "updated_at",
+            # 경험 노트(오른쪽 패널 카드들)
+            "experience_notes",
         ]
         read_only_fields = [
             "id",
-            "created_at",
-            "updated_at",
             "category",
+            "experience_notes",
         ]
 
     def _save_roles(self, activity, validated_data):
@@ -141,6 +141,23 @@ class ActivitySerializer(serializers.ModelSerializer):
         self._save_tags(activity, validated_data)
         self._save_roles(activity, validated_data)
         return activity
+
+    def get_experience_notes(self, obj):
+        """
+        이 활동과 연결된 경험 노트 목록을 간단한 형태로 반환.
+        """
+        notes = (
+            ExperienceNote.objects.filter(user=obj.user, activity=obj)
+            .order_by("-date", "-updated_at")
+        )
+        return [
+            {
+                "id": note.id,
+                "date": note.date.isoformat(),
+                "content": note.content,
+            }
+            for note in notes
+        ]
 
 
 # ---- Award / Certification ----
