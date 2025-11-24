@@ -2,7 +2,6 @@
 from rest_framework import serializers
 
 from .models import (
-<<<<<<< HEAD
     Profile,
     JobRole,
     JobCategory,
@@ -12,11 +11,6 @@ from .models import (
     JobSoftSkill,
     ProfileLink,
     Education,
-=======
-    Profile, JobRole, ProfileLink,
-    JobCategory, HardSkill, SoftSkill,
-    JobHardSkill, JobSoftSkill,
->>>>>>> eabf36c ( migrations 수정)
 )
 
 
@@ -36,20 +30,7 @@ class JobRoleSerializer(serializers.ModelSerializer):
         }
 
 
-class ProfileLinkSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProfileLink
-        fields = ("id", "label", "url", "order")
-
-
-class ProfileLinkWriteSerializer(serializers.Serializer):
-    label = serializers.CharField(max_length=50, required=False, allow_blank=True)
-    url = serializers.URLField()
-    order = serializers.IntegerField(required=False, min_value=0)
-
-
 class ProfileSerializer(serializers.ModelSerializer):
-<<<<<<< HEAD
     """
     - 응답:
         * job_role: nested 객체
@@ -69,19 +50,11 @@ class ProfileSerializer(serializers.ModelSerializer):
     # 링크/학력: 읽기 전용 nested
     links = serializers.SerializerMethodField(read_only=True)
     educations = serializers.SerializerMethodField(read_only=True)
-=======
-    job_role = JobRoleSerializer(read_only=True)
-    job_role_name = serializers.CharField(source="job_role.name", read_only=True)
-    job_role_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
-    links = ProfileLinkSerializer(many=True, read_only=True)
-    link_items = ProfileLinkWriteSerializer(many=True, write_only=True, required=False)
->>>>>>> eabf36c ( migrations 수정)
 
     class Meta:
         model = Profile
         fields = [
             "id",
-<<<<<<< HEAD
             # 기본 프로필
             "display_name",
             "bio",
@@ -115,22 +88,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-=======
-            "full_name", "bio", "avatar",
-            "birth_date", "phone_number", "contact_email",
-            "school_name", "admission_date", "graduation_date",
-            "job_role", "job_role_name", "job_role_id",
-            "links", "link_items",
-            "created_at", "updated_at",
-        ]
-        read_only_fields = ["id", "created_at", "updated_at", "job_role", "job_role_name", "links"]
-        extra_kwargs = {
-            "contact_email": {"allow_blank": True, "required": False},
-            "phone_number": {"allow_blank": True, "required": False},
-            "full_name": {"required": False},
-            "bio": {"required": False},
-        }
->>>>>>> eabf36c ( migrations 수정)
 
     def validate(self, attrs):
         """
@@ -164,7 +121,6 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         return attrs
 
-<<<<<<< HEAD
     def get_links(self, obj: Profile):
         qs = obj.links.all().order_by("order", "id")
         return [
@@ -195,42 +151,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             }
             for edu in qs
         ]
-=======
-    def _sync_links(self, profile: Profile, link_items):
-        if link_items is None:
-            return
-        profile.links.all().delete()
-        new_links = []
-        for idx, payload in enumerate(link_items):
-            url = payload.get("url")
-            if not url:
-                continue
-            order = payload.get("order")
-            if order is None:
-                order = idx
-            new_links.append(
-                ProfileLink(
-                    profile=profile,
-                    label=payload.get("label", ""),
-                    url=url,
-                    order=order,
-                )
-            )
-        if new_links:
-            ProfileLink.objects.bulk_create(new_links)
-
-    def create(self, validated_data):
-        link_items = validated_data.pop("link_items", None)
-        profile = super().create(validated_data)
-        self._sync_links(profile, link_items)
-        return profile
-
-    def update(self, instance, validated_data):
-        link_items = validated_data.pop("link_items", None)
-        profile = super().update(instance, validated_data)
-        self._sync_links(profile, link_items)
-        return profile
->>>>>>> eabf36c ( migrations 수정)
 
 
 # ---------- ERD 확장 직무/스킬 ----------

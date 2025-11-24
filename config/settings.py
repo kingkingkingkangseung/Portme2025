@@ -4,15 +4,14 @@ Django settings for config project.
 import os
 from pathlib import Path
 from datetime import timedelta
+
 from dotenv import load_dotenv
 
 # ───────────────────────────────
 # 기본 설정
 # ───────────────────────────────
-# Load .env from the project root reliably, regardless of working dir
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "!!-DEV-ONLY-CHANGE-ME!!")
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
@@ -21,7 +20,11 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 # 호스트 / CSRF
 # ───────────────────────────────
 ALLOWED_HOSTS = [
-    h.strip() for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost,52.79.131.1").split(",") if h.strip()
+    h.strip()
+    for h in os.getenv(
+        "ALLOWED_HOSTS", "127.0.0.1,localhost,52.79.131.1"
+    ).split(",")
+    if h.strip()
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -113,19 +116,21 @@ CORS_ALLOW_HEADERS = [
 # ───────────────────────────────
 # 템플릿
 # ───────────────────────────────
-TEMPLATES = [{
-    "BACKEND": "django.template.backends.django.DjangoTemplates",
-    "DIRS": [BASE_DIR / "templates"],
-    "APP_DIRS": True,
-    "OPTIONS": {
-        "context_processors": [
-            "django.template.context_processors.debug",
-            "django.template.context_processors.request",
-            "django.contrib.auth.context_processors.auth",
-            "django.contrib.messages.context_processors.messages",
-        ],
-    },
-}]
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    }
+]
 
 # ───────────────────────────────
 # 데이터베이스
@@ -134,6 +139,7 @@ USE_MYSQL = bool(os.getenv("DB_HOST"))
 
 if USE_MYSQL:
     import pymysql
+
     pymysql.install_as_MySQLdb()
 
     DATABASES = {
@@ -194,54 +200,72 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "user.User"
 
 # ───────────────────────────────
-# 인증 관련 설정
+# 인증 / allauth 설정
 # ───────────────────────────────
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-ACCOUNT_AUTHENTICATION_METHOD = "email"
+# django-allauth 65 기준 설정
+# - 이메일만으로 로그인
+# - 회원가입 시 이메일/비밀번호만 필수
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = {
+    "email": {"required": True},
+    "password1": {"required": True},
+    "password2": {"required": True},
+}
+
+# User 모델에는 username 필드가 있지만,
+# 로그인/회원가입 시에는 사용하지 않도록 구성
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_VERIFICATION = "none"
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
+
 SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 
 # Email (SMTP) settings — read from .env
 # If not set, use console backend in DEBUG; SMTP in production by default
 EMAIL_BACKEND = os.getenv(
     "EMAIL_BACKEND",
-    "django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend",
+    "django.core.mail.backends.console.EmailBackend"
+    if DEBUG
+    else "django.core.mail.backends.smtp.EmailBackend",
 )
 EMAIL_HOST = os.getenv("EMAIL_HOST", "")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "noreply@example.com")
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "noreply@example.com"
+)
 SERVER_EMAIL = os.getenv("SERVER_EMAIL", DEFAULT_FROM_EMAIL)
 EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "15"))
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-SOCIALACCOUNT_EMAIL_REQUIRED = True
-SOCIALACCOUNT_QUERY_EMAIL = True
-SOCIALACCOUNT_AUTO_SIGNUP = True
-SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
-ACCOUNT_UNIQUE_EMAIL = True
-
 # ───────────────────────────────
 # Google OAuth
 # ───────────────────────────────
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "https://react-porters-grove.vercel.app/google/callback/")
+GOOGLE_REDIRECT_URI = os.getenv(
+    "GOOGLE_REDIRECT_URI",
+    "https://react-porters-grove.vercel.app/google/callback/",
+)
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://react-porters-grove.vercel.app")
+FRONTEND_URL = os.getenv(
+    "FRONTEND_URL", "https://react-porters-grove.vercel.app"
+)
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
@@ -255,15 +279,11 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-<<<<<<< HEAD
-#ACCOUNT_ADAPTER = "apps.user.adapters.CustomAccountAdapter"
-=======
 # ACCOUNT_ADAPTER = "apps.user.adapters.CustomAccountAdapter"
->>>>>>> eabf36c ( migrations 수정)
 SOCIALACCOUNT_ADAPTER = "apps.user.adapters.CustomSocialAccountAdapter"
 
 # ───────────────────────────────
-# DRF / JWT 00
+# DRF / JWT
 # ───────────────────────────────
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -287,5 +307,6 @@ SIMPLE_JWT = {
 
 REST_AUTH = {"USE_JWT": True}
 REST_AUTH_REGISTER_SERIALIZERS = {
-    "REGISTER_SERIALIZER": "apps.user.serializers.RegisterSerializer"
+    "REGISTER_SERIALIZER": "apps.user.serializers.RegisterSerializer",
 }
+
