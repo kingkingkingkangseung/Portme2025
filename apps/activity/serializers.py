@@ -87,8 +87,7 @@ class ActivitySerializer(serializers.ModelSerializer):
             "action_detail",
             "result_detail",
             "takeaway",
-            # 정리 후 배운 점 / 첨부 / 링크
-            "learned",
+            # 첨부 / 링크
             "attachment",
             "link_url",
             # 활동 종류(프로젝트/공모전/교내활동 등)
