@@ -258,7 +258,7 @@ ACCOUNT_ADAPTER = "apps.user.adapters.CustomAccountAdapter"
 SOCIALACCOUNT_ADAPTER = "apps.user.adapters.CustomSocialAccountAdapter"
 
 # ───────────────────────────────
-# DRF / JWT
+# DRF / JWT 00
 # ───────────────────────────────
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
