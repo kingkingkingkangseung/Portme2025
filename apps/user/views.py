@@ -136,8 +136,22 @@ class GoogleLoginCode(APIView):
     authentication_classes = []  # 비로그인 상태에서 접근 가능하도록
 
     def post(self, request, *args, **kwargs):
+        code = request.data.get("code")
+        redirect_uri = request.data.get("redirect_uri")
         access_token = request.data.get("access_token")
         id_token = request.data.get("id_token")
+
+        if code:
+            try:
+                token_payload = self._exchange_code_for_tokens(code, redirect_uri)
+                access_token = token_payload.get("access_token")
+                id_token = token_payload.get("id_token")
+            except Exception as exc:
+                logger.exception("GoogleLoginCode code exchange error")
+                return Response(
+                    {"detail": "google exchange failed", "error": str(exc)},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         if not access_token and not id_token:
             return Response(
@@ -247,4 +261,21 @@ class GoogleLoginCode(APIView):
             raise Exception(f"userinfo(access_token) error: {data}")
 
         # 필요하다면 여기서도 aud 검증을 위해 tokeninfo(access_token=...) 한번 더 호출 가능
+        return data
+
+    def _exchange_code_for_tokens(self, code: str, redirect_uri: str | None) -> dict:
+        if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
+            raise Exception("google client 설정이 없습니다.")
+
+        payload = {
+            "code": code,
+            "client_id": settings.GOOGLE_CLIENT_ID,
+            "client_secret": settings.GOOGLE_CLIENT_SECRET,
+            "redirect_uri": redirect_uri or settings.GOOGLE_REDIRECT_URI,
+            "grant_type": "authorization_code",
+        }
+        resp = requests.post("https://oauth2.googleapis.com/token", data=payload, timeout=5)
+        data = resp.json()
+        if resp.status_code != 200:
+            raise Exception(f"token 교환 실패: {data}")
         return data
