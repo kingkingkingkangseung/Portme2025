@@ -1,9 +1,16 @@
 # apps/profiles/serializers.py
 from rest_framework import serializers
+
 from .models import (
-    Profile, JobRole,
-    JobCategory, HardSkill, SoftSkill,
-    JobHardSkill, JobSoftSkill,
+    Profile,
+    JobRole,
+    JobCategory,
+    HardSkill,
+    SoftSkill,
+    JobHardSkill,
+    JobSoftSkill,
+    ProfileLink,
+    Education,
 )
 
 
@@ -17,47 +24,82 @@ class JobRoleSerializer(serializers.ModelSerializer):
     def get_job_category(self, obj):
         if not obj.job_category:
             return None
-        return {"id": obj.job_category.id, "name": obj.job_category.name}
+        return {
+            "id": obj.job_category.id,
+            "name": obj.job_category.name,
+        }
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    # 응답용(읽기): 직무를 nested 로 보여줌
+    """
+    - 응답:
+        * job_role: nested 객체
+        * links, educations: nested 리스트
+    - 입력:
+        * job_role_id 또는 job_role(int) 로 직무 설정
+    """
+
     job_role = JobRoleSerializer(read_only=True)
     job_role_name = serializers.CharField(source="job_role.name", read_only=True)
 
-    # 입력용(쓰기): 두 키 모두 지원
-    # 1) job_role_id: 25
-    job_role_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
-    # 2) job_role: 25  (정수로 오면 alias 처리를 해줌; 응답에서는 nested로 나감)
-    #    → 별도 필드 정의 없이 validate()에서 initial_data를 보고 처리
+    # 쓰기용 필드: id 기반으로 직무 지정
+    job_role_id = serializers.IntegerField(
+        write_only=True, required=False, allow_null=True
+    )
+
+    # 링크/학력: 읽기 전용 nested
+    links = serializers.SerializerMethodField(read_only=True)
+    educations = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Profile
         fields = [
             "id",
             # 기본 프로필
-            "display_name", "bio", "avatar", "website",
-            # 사용자 카드
-            "full_name", "github_linked", "level",
+            "display_name",
+            "bio",
+            "avatar",
+            "website",
+            # 프로필 카드
+            "full_name",
+            "github_linked",
+            "level",
+            # 추가 입력 필드
+            "birth_date",
+            "phone_number",
+            "email",
             # 직무
-            "job_role", "job_role_name", "job_role_id",
+            "job_role",
+            "job_role_name",
+            "job_role_id",
+            # 링크/학력
+            "links",
+            "educations",
             # 메타
-            "created_at", "updated_at",
+            "created_at",
+            "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = [
+            "id",
+            "job_role",
+            "job_role_name",
+            "links",
+            "educations",
+            "created_at",
+            "updated_at",
+        ]
 
     def validate(self, attrs):
         """
-        - job_role_id 를 우선 사용
-        - 없으면 initial_data 의 job_role 이 int 로 온 경우도 허용
-        - 유효하지 않은 id 이면 400 에러
+        - job_role_id 가 있으면 우선 사용
+        - 없으면 initial_data 의 job_role 가 int 인지 검사
+        - 유효하지 않은 직무 id 이면 400
         """
-        # 1) job_role_id 우선
         role_id = attrs.pop("job_role_id", None)
 
-        # 2) 'job_role': <int> 로 왔는지도 체크 (응답에서 nested로 쓰는 필드지만, 입력 alias 허용)
+        # 'job_role': <int> 형태로 들어온 경우 지원
         if role_id is None:
-            raw = self.initial_data.get("job_role", None)
+            raw = self.initial_data.get("job_role")
             if isinstance(raw, int):
                 role_id = raw
 
@@ -69,17 +111,50 @@ class ProfileSerializer(serializers.ModelSerializer):
             try:
                 role_obj = JobRole.objects.get(pk=role_id, is_active=True)
             except JobRole.DoesNotExist:
-                raise serializers.ValidationError({"job_role_id": "유효한 직무가 아닙니다."})
-            # 모델 필드에 직접 매핑
+                raise serializers.ValidationError(
+                    {"job_role_id": "유효한 직무가 아닙니다."}
+                )
             attrs["job_role"] = role_obj
         elif "job_role" in attrs and attrs["job_role"] is None:
-            # 명시적으로 null 로 보낸 경우 (ex. job_role_id: null)
+            # 명시적으로 null 을 보낸 경우
             attrs["job_role"] = None
 
         return attrs
 
+    def get_links(self, obj: Profile):
+        qs = obj.links.all().order_by("order", "id")
+        return [
+            {
+                "id": link.id,
+                "title": link.title,
+                "url": link.url,
+                "order": link.order,
+            }
+            for link in qs
+        ]
+
+    def get_educations(self, obj: Profile):
+        qs = obj.educations.all().order_by("-updated_at", "-id")
+        return [
+            {
+                "id": edu.id,
+                "school_type": edu.school_type,
+                "school_name": edu.school_name,
+                "is_transfer": edu.is_transfer,
+                "start_year_month": edu.start_year_month,
+                "end_year_month": edu.end_year_month,
+                "status": edu.status,
+                "major_type": edu.major_type,
+                "major_name": edu.major_name,
+                "gpa": edu.gpa,
+                "gpa_scale": edu.gpa_scale,
+            }
+            for edu in qs
+        ]
+
 
 # ---------- ERD 확장 직무/스킬 ----------
+
 
 class JobCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -108,3 +183,4 @@ class JobRoleSkillsSerializer(serializers.Serializer):
 class JobRoleSkillsUpdateSerializer(serializers.Serializer):
     hard_ids = serializers.ListField(child=serializers.IntegerField(), required=False)
     soft_ids = serializers.ListField(child=serializers.IntegerField(), required=False)
+
