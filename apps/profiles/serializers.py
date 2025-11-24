@@ -36,23 +36,30 @@ class ProfileLinkWriteSerializer(serializers.Serializer):
 DATE_INPUT_FORMATS = ["%Y-%m-%d", "%Y.%m.%d", "%Y-%m", "%Y.%m"]
 
 
+class OptionalDateField(serializers.DateField):
+    def to_internal_value(self, value):
+        if value in ("", None):
+            return None
+        return super().to_internal_value(value)
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     job_role = JobRoleSerializer(read_only=True)
     job_role_name = serializers.CharField(source="job_role.name", read_only=True)
     job_role_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     links = ProfileLinkSerializer(many=True, read_only=True)
     link_items = ProfileLinkWriteSerializer(many=True, write_only=True, required=False)
-    birth_date = serializers.DateField(
+    birth_date = OptionalDateField(
         required=False,
         allow_null=True,
         input_formats=DATE_INPUT_FORMATS[:2],
     )
-    admission_date = serializers.DateField(
+    admission_date = OptionalDateField(
         required=False,
         allow_null=True,
         input_formats=DATE_INPUT_FORMATS,
     )
-    graduation_date = serializers.DateField(
+    graduation_date = OptionalDateField(
         required=False,
         allow_null=True,
         input_formats=DATE_INPUT_FORMATS,

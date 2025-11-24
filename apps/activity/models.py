@@ -68,8 +68,8 @@ class Activity(models.Model):
     task_detail = models.TextField("과제(Task)", blank=True)
     action_detail = models.TextField("행동(Action)", blank=True)
     result_detail = models.TextField("결과(Result)", blank=True)
-    takeaway = models.TextField("교훈(Takeaway)", blank=True)
-
+    takeaway= models.TextField("교훈(Takeaway)", blank=True)
+    
     organization = models.CharField("소속 팀/회사", max_length=120, blank=True)
     plan_count   = models.PositiveSmallIntegerField(default=0)
     design_count = models.PositiveSmallIntegerField(default=0)
