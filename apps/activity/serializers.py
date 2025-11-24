@@ -45,8 +45,6 @@ class ActivityRoleSerializer(serializers.ModelSerializer):
 # ---- Activity ----
 class ActivitySerializer(serializers.ModelSerializer):
     category = ActivityCategorySerializer(read_only=True)
-    memos = ActivityMemoSerializer(many=True, read_only=True)
-    roles = ActivityRoleSerializer(many=True, read_only=True)
     experience_notes = serializers.SerializerMethodField(read_only=True)
 
     category_id = serializers.PrimaryKeyRelatedField(
@@ -93,6 +91,11 @@ class ActivitySerializer(serializers.ModelSerializer):
             # 활동 종류(프로젝트/공모전/교내활동 등)
             "category",
             "category_id",
+            # 태그/역할(입력용, 응답에는 안 나옴)
+            "tag_ids",
+            "primary_tag_ids",
+            "secondary_tag_ids",
+            "role_items",
             # 경험 노트(오른쪽 패널 카드들)
             "experience_notes",
         ]
