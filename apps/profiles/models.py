@@ -95,7 +95,7 @@ class ProfileLink(models.Model):
         on_delete=models.CASCADE,
         related_name="links",
     )
-    title = models.CharField("링크명", max_length=100, blank=True)
+    label = models.CharField("링크명", max_length=100, blank=True)
     url = models.URLField("URL")
     order = models.PositiveIntegerField("순서", default=0)
 
@@ -106,7 +106,7 @@ class ProfileLink(models.Model):
         ordering = ["order", "id"]
 
     def __str__(self) -> str:  # pragma: no cover - display only
-        return f"{self.profile_id} - {self.title or self.url}"
+        return f"{self.profile_id} - {self.label or self.url}"
 
 
 # ============================
@@ -241,4 +241,3 @@ class Education(models.Model):
 
     def __str__(self) -> str:  # pragma: no cover - display only
         return f"{self.profile_id} - {self.school_name}"
-

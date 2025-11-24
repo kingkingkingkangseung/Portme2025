@@ -30,6 +30,30 @@ class JobRoleSerializer(serializers.ModelSerializer):
         }
 
 
+class ProfileLinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfileLink
+        fields = ("id", "label", "url", "order")
+
+
+class EducationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Education
+        fields = (
+            "id",
+            "school_type",
+            "school_name",
+            "is_transfer",
+            "start_year_month",
+            "end_year_month",
+            "status",
+            "major_type",
+            "major_name",
+            "gpa",
+            "gpa_scale",
+        )
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     """
     - 응답:
@@ -37,19 +61,24 @@ class ProfileSerializer(serializers.ModelSerializer):
         * links, educations: nested 리스트
     - 입력:
         * job_role_id 또는 job_role(int) 로 직무 설정
+        * links, educations 전체 목록을 한번에 갱신
     """
 
     job_role = JobRoleSerializer(read_only=True)
     job_role_name = serializers.CharField(source="job_role.name", read_only=True)
+    # 직무 텍스트(프로필 카드에 노출) → User 모델의 job_title 과 연결
+    job_title = serializers.CharField(
+        source="user.job_title", required=False, allow_blank=True
+    )
 
     # 쓰기용 필드: id 기반으로 직무 지정
     job_role_id = serializers.IntegerField(
         write_only=True, required=False, allow_null=True
     )
 
-    # 링크/학력: 읽기 전용 nested
-    links = serializers.SerializerMethodField(read_only=True)
-    educations = serializers.SerializerMethodField(read_only=True)
+    # 링크/학력: 읽기/쓰기 모두 같은 구조 사용
+    links = ProfileLinkSerializer(many=True, required=False)
+    educations = EducationSerializer(many=True, required=False)
 
     class Meta:
         model = Profile
@@ -64,6 +93,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "full_name",
             "github_linked",
             "level",
+            "job_title",
             # 추가 입력 필드
             "birth_date",
             "phone_number",
@@ -83,8 +113,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             "id",
             "job_role",
             "job_role_name",
-            "links",
-            "educations",
             "created_at",
             "updated_at",
         ]
@@ -121,36 +149,87 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         return attrs
 
-    def get_links(self, obj: Profile):
-        qs = obj.links.all().order_by("order", "id")
-        return [
-            {
-                "id": link.id,
-                "title": link.title,
-                "url": link.url,
-                "order": link.order,
-            }
-            for link in qs
-        ]
+    # ---------- nested write helpers ----------
 
-    def get_educations(self, obj: Profile):
-        qs = obj.educations.all().order_by("-updated_at", "-id")
-        return [
-            {
-                "id": edu.id,
-                "school_type": edu.school_type,
-                "school_name": edu.school_name,
-                "is_transfer": edu.is_transfer,
-                "start_year_month": edu.start_year_month,
-                "end_year_month": edu.end_year_month,
-                "status": edu.status,
-                "major_type": edu.major_type,
-                "major_name": edu.major_name,
-                "gpa": edu.gpa,
-                "gpa_scale": edu.gpa_scale,
-            }
-            for edu in qs
-        ]
+    def _sync_links(self, profile: Profile, links_data):
+        if links_data is None:
+            return
+        ProfileLink.objects.filter(profile=profile).delete()
+        to_create = []
+        for idx, item in enumerate(links_data):
+            url = item.get("url")
+            if not url:
+                continue
+            order = item.get("order", idx)
+            to_create.append(
+                ProfileLink(
+                    profile=profile,
+                    label=item.get("label", ""),
+                    url=url,
+                    order=order,
+                )
+            )
+        if to_create:
+            ProfileLink.objects.bulk_create(to_create)
+
+    def _sync_educations(self, profile: Profile, edu_data):
+        if edu_data is None:
+            return
+        Education.objects.filter(profile=profile).delete()
+        to_create = []
+        for item in edu_data:
+            # 최소한 학교명은 있어야 저장
+            if not item.get("school_name"):
+                continue
+            to_create.append(
+                Education(
+                    profile=profile,
+                    school_type=item.get("school_type") or Education.SchoolType.UNIV_4,
+                    school_name=item.get("school_name"),
+                    is_transfer=item.get("is_transfer", False),
+                    start_year_month=item.get("start_year_month", ""),
+                    end_year_month=item.get("end_year_month", ""),
+                    status=item.get("status") or Education.Status.ENROLLED,
+                    major_type=item.get("major_type", ""),
+                    major_name=item.get("major_name", ""),
+                    gpa=item.get("gpa"),
+                    gpa_scale=item.get("gpa_scale"),
+                )
+            )
+        if to_create:
+            Education.objects.bulk_create(to_create)
+
+    def create(self, validated_data):
+        links_data = validated_data.pop("links", None)
+        edu_data = validated_data.pop("educations", None)
+        user_data = validated_data.pop("user", {})
+        job_title = user_data.get("job_title")
+
+        profile = super().create(validated_data)
+
+        if job_title is not None:
+            profile.user.job_title = job_title
+            profile.user.save(update_fields=["job_title"])
+
+        self._sync_links(profile, links_data)
+        self._sync_educations(profile, edu_data)
+        return profile
+
+    def update(self, instance, validated_data):
+        links_data = validated_data.pop("links", None)
+        edu_data = validated_data.pop("educations", None)
+        user_data = validated_data.pop("user", {})
+        job_title = user_data.get("job_title")
+
+        profile = super().update(instance, validated_data)
+
+        if job_title is not None:
+            profile.user.job_title = job_title
+            profile.user.save(update_fields=["job_title"])
+
+        self._sync_links(profile, links_data)
+        self._sync_educations(profile, edu_data)
+        return profile
 
 
 # ---------- ERD 확장 직무/스킬 ----------
@@ -183,4 +262,3 @@ class JobRoleSkillsSerializer(serializers.Serializer):
 class JobRoleSkillsUpdateSerializer(serializers.Serializer):
     hard_ids = serializers.ListField(child=serializers.IntegerField(), required=False)
     soft_ids = serializers.ListField(child=serializers.IntegerField(), required=False)
-
