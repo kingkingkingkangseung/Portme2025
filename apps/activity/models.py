@@ -205,3 +205,55 @@ class ActivitySoftSkill(models.Model):
 
     def __str__(self):
         return f"{self.activity_id} - {self.soft_skill} (L{self.level})"
+
+
+# ============================
+# 포함된 활동(세부 활동)
+# ============================
+
+class SubActivity(models.Model):
+    """
+    하나의 큰 Activity 안에 포함되는 세부 활동 카드.
+    예: 사용자 리서치, 시나리오 기획, 프로토타입 제작 등.
+    """
+    activity = models.ForeignKey(
+        Activity,
+        on_delete=models.CASCADE,
+        related_name="sub_activities",
+    )
+
+    # 기본 정보
+    title = models.CharField("활동명", max_length=200)
+    summary = models.CharField("요약", max_length=255, blank=True)
+
+    period_start = models.DateField("시작일", null=True, blank=True)
+    period_end = models.DateField("종료일", null=True, blank=True)
+    is_ongoing = models.BooleanField("진행 중 여부", default=False)
+
+    metric = models.CharField("성과 지표", max_length=255, blank=True)
+    hard_tools = models.CharField("핸즈온 스택", max_length=255, blank=True)
+    soft_skills = models.CharField("소프트 스킬", max_length=255, blank=True)
+
+    # 세부 내용 (STAR)
+    situation = models.TextField("상황", blank=True)
+    task_detail = models.TextField("과제", blank=True)
+    action_detail = models.TextField("행동", blank=True)
+    result_detail = models.TextField("결과", blank=True)
+    takeaway = models.TextField("교훈", blank=True)
+
+    attachment = models.FileField(
+        "첨부 파일",
+        upload_to="subactivity_attachments/",
+        blank=True,
+        null=True,
+    )
+    link_url = models.URLField("관련 링크", blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["period_start", "id"]
+
+    def __str__(self):
+        return f"{self.activity_id} - {self.title}"

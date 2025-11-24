@@ -1,11 +1,20 @@
 from django.urls import path
+
 from .views import (
-    ActivityListCreateAPIView, ActivityDetailAPIView,
-    ActivityMemoListCreateAPIView, ActivityMemoDetailAPIView,
-    ActivityCategoryListAPIView, TagListAPIView,
-    ActivityHardSkillListCreateAPIView, ActivityHardSkillDetailAPIView,
-    ActivitySoftSkillListCreateAPIView, ActivitySoftSkillDetailAPIView,
+    ActivityListCreateAPIView,
+    ActivityDetailAPIView,
+    ActivityMemoListCreateAPIView,
+    ActivityMemoDetailAPIView,
+    ActivityCategoryListAPIView,
+    TagListAPIView,
+    ActivityHardSkillListCreateAPIView,
+    ActivityHardSkillDetailAPIView,
+    ActivitySoftSkillListCreateAPIView,
+    ActivitySoftSkillDetailAPIView,
+    SubActivityListCreateAPIView,
+    SubActivityDetailAPIView,
 )
+
 
 urlpatterns = [
     path("", ActivityListCreateAPIView.as_view(), name="activity-list"),
@@ -15,12 +24,42 @@ urlpatterns = [
     path("<int:activity_id>/memos/", ActivityMemoListCreateAPIView.as_view(), name="activity-memo-list"),
     path("<int:activity_id>/memos/<int:pk>/", ActivityMemoDetailAPIView.as_view(), name="activity-memo-detail"),
 
-    # 카테고리/태그
+    # 포함된 활동(세부 활동)
+    path(
+        "<int:activity_id>/sub-activities/",
+        SubActivityListCreateAPIView.as_view(),
+        name="subactivity-list",
+    ),
+    path(
+        "<int:activity_id>/sub-activities/<int:pk>/",
+        SubActivityDetailAPIView.as_view(),
+        name="subactivity-detail",
+    ),
+
+    # 카테고리 / 태그
     path("categories/", ActivityCategoryListAPIView.as_view(), name="activity-category-list"),
     path("tags/", TagListAPIView.as_view(), name="tag-list"),
+
     # 스킬 링크
-    path("<int:activity_id>/hard-skills/", ActivityHardSkillListCreateAPIView.as_view(), name="activity-hard-skill-list"),
-    path("<int:activity_id>/hard-skills/<int:pk>/", ActivityHardSkillDetailAPIView.as_view(), name="activity-hard-skill-detail"),
-    path("<int:activity_id>/soft-skills/", ActivitySoftSkillListCreateAPIView.as_view(), name="activity-soft-skill-list"),
-    path("<int:activity_id>/soft-skills/<int:pk>/", ActivitySoftSkillDetailAPIView.as_view(), name="activity-soft-skill-detail"),
+    path(
+        "<int:activity_id>/hard-skills/",
+        ActivityHardSkillListCreateAPIView.as_view(),
+        name="activity-hard-skill-list",
+    ),
+    path(
+        "<int:activity_id>/hard-skills/<int:pk>/",
+        ActivityHardSkillDetailAPIView.as_view(),
+        name="activity-hard-skill-detail",
+    ),
+    path(
+        "<int:activity_id>/soft-skills/",
+        ActivitySoftSkillListCreateAPIView.as_view(),
+        name="activity-soft-skill-list",
+    ),
+    path(
+        "<int:activity_id>/soft-skills/<int:pk>/",
+        ActivitySoftSkillDetailAPIView.as_view(),
+        name="activity-soft-skill-detail",
+    ),
 ]
+

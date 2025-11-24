@@ -1,14 +1,30 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, viewsets
 from .models import (
-    Activity, ActivityMemo, ActivityCategory, Tag,
-    Award, Certification, GlobalExp, ForeignLang,
-    ActivityHardSkill, ActivitySoftSkill,
+    Activity,
+    ActivityMemo,
+    ActivityCategory,
+    Tag,
+    Award,
+    Certification,
+    GlobalExp,
+    ForeignLang,
+    ActivityHardSkill,
+    ActivitySoftSkill,
+    SubActivity,
 )
 from .serializers import (
-    ActivitySerializer, ActivityMemoSerializer, ActivityCategorySerializer, TagSerializer,
-    AwardSerializer, CertificationSerializer, GlobalExpSerializer, ForeignLangSerializer,
-    ActivityHardSkillSerializer, ActivitySoftSkillSerializer,
+    ActivitySerializer,
+    ActivityMemoSerializer,
+    ActivityCategorySerializer,
+    TagSerializer,
+    AwardSerializer,
+    CertificationSerializer,
+    GlobalExpSerializer,
+    ForeignLangSerializer,
+    ActivityHardSkillSerializer,
+    ActivitySoftSkillSerializer,
+    SubActivitySerializer,
 )
 
 # -------- 활동 CRUD --------
@@ -180,3 +196,27 @@ class ActivitySoftSkillDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     def get_object(self):
         activity = get_object_or_404(Activity, pk=self.kwargs["activity_id"], user=self.request.user)
         return get_object_or_404(ActivitySoftSkill, pk=self.kwargs["pk"], activity=activity)
+
+
+# -------- 포함된 활동(세부 활동) --------
+class SubActivityListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = SubActivitySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_activity(self):
+        return get_object_or_404(Activity, pk=self.kwargs["activity_id"], user=self.request.user)
+
+    def get_queryset(self):
+        return SubActivity.objects.filter(activity=self.get_activity()).order_by("period_start", "id")
+
+    def perform_create(self, serializer):
+        serializer.save(activity=self.get_activity())
+
+
+class SubActivityDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = SubActivitySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        activity = get_object_or_404(Activity, pk=self.kwargs["activity_id"], user=self.request.user)
+        return get_object_or_404(activity.sub_activities, pk=self.kwargs["pk"])

@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from .models import (
     Activity,
     ActivityMemo,
@@ -11,6 +12,7 @@ from .models import (
     ForeignLang,
     ActivityHardSkill,
     ActivitySoftSkill,
+    SubActivity,
 )
 from apps.profiles.models import HardSkill, SoftSkill
 from apps.dashboard.models import ExperienceNote
@@ -42,32 +44,79 @@ class ActivityRoleSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "count"]
 
 
+class SubActivitySerializer(serializers.ModelSerializer):
+    """
+    활동 상세 화면의 '포함된 활동' 카드 한 개에 해당하는 세부 활동.
+    """
+
+    class Meta:
+        model = SubActivity
+        fields = [
+            "id",
+            "title",
+            "summary",
+            "period_start",
+            "period_end",
+            "is_ongoing",
+            "metric",
+            "hard_tools",
+            "soft_skills",
+            "situation",
+            "task_detail",
+            "action_detail",
+            "result_detail",
+            "takeaway",
+            "attachment",
+            "link_url",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+
 # ---- Activity ----
 class ActivitySerializer(serializers.ModelSerializer):
     category = ActivityCategorySerializer(read_only=True)
     experience_notes = serializers.SerializerMethodField(read_only=True)
+    sub_activities = SubActivitySerializer(many=True, read_only=True)
 
+    # 쓰기용 필드들 (응답에는 포함되지만, 의미상 입력용)
     category_id = serializers.PrimaryKeyRelatedField(
         queryset=ActivityCategory.objects.filter(is_active=True),
         source="category",
-        write_only=True, required=False, allow_null=True,
+        write_only=True,
+        required=False,
+        allow_null=True,
     )
     tag_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(), many=True, write_only=True, required=False
+        queryset=Tag.objects.all(),
+        many=True,
+        write_only=True,
+        required=False,
     )
     primary_tag_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(), many=True, write_only=True, required=False
+        queryset=Tag.objects.all(),
+        many=True,
+        write_only=True,
+        required=False,
     )
     secondary_tag_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(), many=True, write_only=True, required=False
+        queryset=Tag.objects.all(),
+        many=True,
+        write_only=True,
+        required=False,
     )
-    role_items = ActivityRoleSerializer(many=True, write_only=True, required=False)
+    role_items = ActivityRoleSerializer(
+        many=True,
+        write_only=True,
+        required=False,
+    )
 
     class Meta:
         model = Activity
         fields = [
             "id",
-            # 기본 정보 (두 번째 화면 상단)
+            # 상단 기본 정보
             "title",
             "period_start",
             "period_end",
@@ -91,27 +140,29 @@ class ActivitySerializer(serializers.ModelSerializer):
             # 활동 종류(프로젝트/공모전/교내활동 등)
             "category",
             "category_id",
-            # 태그/역할(입력용, 응답에는 안 나옴)
+            # 태그 / 역할 (작성용)
             "tag_ids",
             "primary_tag_ids",
             "secondary_tag_ids",
             "role_items",
-            # 경험 노트(오른쪽 패널 카드들)
+            # 경험 노트 / 포함된 활동
             "experience_notes",
+            "sub_activities",
         ]
         read_only_fields = [
             "id",
             "category",
             "experience_notes",
+            "sub_activities",
         ]
 
     def _save_roles(self, activity, validated_data):
         role_items = validated_data.pop("role_items", None)
         if role_items is not None:
             activity.roles.all().delete()
-            ActivityRole.objects.bulk_create([
-                ActivityRole(activity=activity, **item) for item in role_items
-            ])
+            ActivityRole.objects.bulk_create(
+                [ActivityRole(activity=activity, **item) for item in role_items]
+            )
 
     def _save_tags(self, activity, validated_data, *, on_create=False):
         primary = validated_data.pop("primary_tag_ids", None)
@@ -192,11 +243,13 @@ class ForeignLangSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "user"]
 
 
-# ---- ERD 확장: Activity ↔ Skill ----
+# ---- Activity Skill 링크 ----
 class ActivityHardSkillSerializer(serializers.ModelSerializer):
     hard_skill = serializers.SerializerMethodField(read_only=True)
     hard_skill_id = serializers.PrimaryKeyRelatedField(
-        queryset=HardSkill.objects.all(), source='hard_skill', write_only=True
+        queryset=HardSkill.objects.all(),
+        source="hard_skill",
+        write_only=True,
     )
 
     class Meta:
@@ -205,13 +258,19 @@ class ActivityHardSkillSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "activity", "hard_skill"]
 
     def get_hard_skill(self, obj):
-        return {"id": obj.hard_skill.id, "name": obj.hard_skill.name, "code": obj.hard_skill.code}
+        return {
+            "id": obj.hard_skill.id,
+            "name": obj.hard_skill.name,
+            "code": obj.hard_skill.code,
+        }
 
 
 class ActivitySoftSkillSerializer(serializers.ModelSerializer):
     soft_skill = serializers.SerializerMethodField(read_only=True)
     soft_skill_id = serializers.PrimaryKeyRelatedField(
-        queryset=SoftSkill.objects.all(), source='soft_skill', write_only=True
+        queryset=SoftSkill.objects.all(),
+        source="soft_skill",
+        write_only=True,
     )
 
     class Meta:
@@ -221,3 +280,4 @@ class ActivitySoftSkillSerializer(serializers.ModelSerializer):
 
     def get_soft_skill(self, obj):
         return {"id": obj.soft_skill.id, "name": obj.soft_skill.name}
+
