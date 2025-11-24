@@ -23,6 +23,6 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(ProfileLink)
 class ProfileLinkAdmin(admin.ModelAdmin):
-    list_display = ("id", "profile", "label", "url", "order")
+    list_display = ("id", "profile", "url", "order")
     list_filter = ("profile",)
     search_fields = ("label", "url")
