@@ -239,9 +239,9 @@ ACCOUNT_UNIQUE_EMAIL = True
 # ───────────────────────────────
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "https://react-porters-grove.vercel.app/google/callback/")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "https://grove.ajousw.kr/auth/google/callback")
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://react-porters-grove.vercel.app")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://grove.ajousw.kr")
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
