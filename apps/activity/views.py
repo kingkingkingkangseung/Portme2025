@@ -5,6 +5,7 @@ from .models import (
     ActivityMemo,
     ActivityCategory,
     Tag,
+    Career,
     Award,
     Certification,
     GlobalExp,
@@ -18,6 +19,7 @@ from .serializers import (
     ActivityMemoSerializer,
     ActivityCategorySerializer,
     TagSerializer,
+    CareerSerializer,
     AwardSerializer,
     CertificationSerializer,
     GlobalExpSerializer,
@@ -106,7 +108,22 @@ class TagListAPIView(generics.ListAPIView):
         return qs
 
 
-# -------- Award / Certification / GlobalExp / ForeignLang --------
+# -------- Award / Certification / Career / GlobalExp / ForeignLang --------
+class CareerViewSet(viewsets.ModelViewSet):
+    serializer_class = CareerSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        qs = Career.objects.filter(user=self.request.user)
+        employment_type = self.request.query_params.get("employment_type")
+        if employment_type:
+            qs = qs.filter(employment_type=employment_type)
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
 class AwardViewSet(viewsets.ModelViewSet):
     serializer_class = AwardSerializer
     permission_classes = [permissions.IsAuthenticated]

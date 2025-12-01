@@ -6,6 +6,7 @@ from .models import (
     ActivityCategory,
     Tag,
     ActivityRole,
+    Career,
     Award,
     Certification,
     GlobalExp,
@@ -213,7 +214,7 @@ class ActivitySerializer(serializers.ModelSerializer):
         ]
 
 
-# ---- Award / Certification ----
+# ---- Award / Certification / Career ----
 class AwardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Award
@@ -224,6 +225,13 @@ class AwardSerializer(serializers.ModelSerializer):
 class CertificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Certification
+        fields = "__all__"
+        read_only_fields = ["id", "user"]
+
+
+class CareerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Career
         fields = "__all__"
         read_only_fields = ["id", "user"]
 
@@ -280,4 +288,3 @@ class ActivitySoftSkillSerializer(serializers.ModelSerializer):
 
     def get_soft_skill(self, obj):
         return {"id": obj.soft_skill.id, "name": obj.soft_skill.name}
-

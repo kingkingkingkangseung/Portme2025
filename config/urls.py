@@ -4,7 +4,11 @@ from django.http import HttpResponse
 from rest_framework.routers import DefaultRouter
 
 from apps.activity.views import (
-    AwardViewSet, CertificationViewSet, ForeignLangViewSet, GlobalExpViewSet
+    AwardViewSet,
+    CareerViewSet,
+    CertificationViewSet,
+    ForeignLangViewSet,
+    GlobalExpViewSet,
 )
 from apps.user.views import (
     CustomLoginView,
@@ -18,10 +22,11 @@ def health(request):
     return HttpResponse("OK")
 
 
-# Router for award/cert/globalexp/foreignlang
+# Router for award/cert/career/globalexp/foreignlang
 router = DefaultRouter()
 router.register(r"awards", AwardViewSet, basename="award")
 router.register(r"certifications", CertificationViewSet, basename="certification")
+router.register(r"careers", CareerViewSet, basename="career")
 router.register(r"globalexps", GlobalExpViewSet, basename="globalexp")
 router.register(r"foreignlangs", ForeignLangViewSet, basename="foreignlang")
 
