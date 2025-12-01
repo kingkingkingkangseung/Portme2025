@@ -30,6 +30,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://www.grove.beer",
     "http://52.79.131.1",
     "https://52.79.131.1",
+    "https://grove.ajousw.kr",
 ]
 
 # ───────────────────────────────
@@ -92,7 +93,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # 개발 중엔 True, 배포에선 아래 Origin만 허용
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://react-porters-grove.vercel.app",
+    "https://grove.ajousw.kr",
 ]
 
 # Explicitly allow methods/headers to ensure proxies/nginx don't block preflight
