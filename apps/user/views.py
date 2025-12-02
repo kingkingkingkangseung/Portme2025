@@ -14,12 +14,8 @@ from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 
-import secrets
-import string
 import requests
 import logging
-import traceback
-
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -109,27 +105,28 @@ class CustomLoginView(LoginView):
             )
 
 
-# ==================== GOOGLE (code 교환 X, token 기반) ====================
+# ==================== GOOGLE (Authorization Code + PKCE 지원) ====================
 
 class GoogleLoginCode(APIView):
     """
-    프론트에서 이미 받아온 Google access_token 또는 id_token을 받아서
-    - 구글에 검증 요청
-    - User 생성/조회
-    - 우리 서비스용 JWT 발급
+    프론트에서 받은 Google authorization code (및 PKCE code_verifier)를
+    서버에서 access_token/id_token 으로 교환하고,
+    User 생성/조회 후 우리 서비스용 JWT를 발급한다.
 
-    요청 형식 (예시):
+    요청 형식:
         POST /api/v1/auth/google/
         {
-            "access_token": "<구글 액세스 토큰>"   // 또는
-            "id_token": "<구글 ID 토큰>"
+            "code": "<auth code>",
+            "redirect_uri": "https://grove.ajousw.kr/auth/google/callback",
+            "code_verifier": "<PKCE code_verifier>"   // 선택 (PKCE 사용 시)
         }
 
     응답 형식:
         {
             "access": "...",        # JWT access
             "refresh": "...",       # JWT refresh
-            "user": { ... }         # UserDetailsSerializer 결과
+            "user": { ... },        # UserDetailsSerializer 결과
+            "created": true/false   # 새로 만든 유저인지 여부
         }
     """
     permission_classes = [AllowAny]
@@ -142,10 +139,21 @@ class GoogleLoginCode(APIView):
         access_token = request.data.get("access_token")
         id_token = request.data.get("id_token")
 
+        # 1) Authorization Code → token 교환 (우리 플로우의 기본 케이스)
         if code:
             try:
-                logger.info("google code exchange", extra={"code_prefix": (code or "")[:12], "redirect_uri": redirect_uri})
-                token_payload = self._exchange_code_for_tokens(code, redirect_uri, code_verifier)
+                logger.info(
+                    "GoogleLoginCode: code exchange 시작",
+                    extra={
+                        "code_prefix": (code or "")[:12],
+                        "frontend_redirect_uri": redirect_uri,
+                    },
+                )
+                token_payload = self._exchange_code_for_tokens(
+                    code,
+                    redirect_uri,
+                    code_verifier,
+                )
                 access_token = token_payload.get("access_token")
                 id_token = token_payload.get("id_token")
             except Exception as exc:
@@ -155,12 +163,14 @@ class GoogleLoginCode(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
+        # 2) 토큰이 전혀 없다면 에러
         if not access_token and not id_token:
             return Response(
                 {"detail": "access_token 또는 id_token 중 하나는 반드시 필요합니다."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # 3) 구글 토큰 검증 + 유저 정보 가져오기
         try:
             google_data = self._get_google_userinfo(access_token, id_token)
         except Exception as e:
@@ -183,7 +193,7 @@ class GoogleLoginCode(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # 이름 정보 최대한 잘 뽑기
+        # 4) 이름 정보 최대한 잘 뽑기
         name = (
             google_data.get("name")
             or (
@@ -192,27 +202,26 @@ class GoogleLoginCode(APIView):
             or email.split("@")[0]
         )
 
-        # ==== User 조회/생성 ====
+        # 5) User 조회/생성
         try:
             user = User.objects.get(email__iexact=email)
             created = False
         except User.DoesNotExist:
             username_base = email.split("@")[0] or name
             username = _ensure_username(username_base)
-            # create_user 사용 (비밀번호는 랜덤으로 생성해도 되고, 빈 문자열 허용 모델이면 그대로 둬도 됨)
             user = User.objects.create_user(
                 email=email,
                 username=username,
-                password=None,  # 소셜 전용 계정이라면 password=None 로 두고, 일반 로그인은 막아도 됨
+                password=None,  # 소셜 전용 계정
             )
             created = True
 
-        # full_name 같은 프로필 필드 채우기
+        # full_name 같은 필드 채우기 (있을 경우)
         if hasattr(user, "full_name") and (not getattr(user, "full_name", None)) and name:
             user.full_name = name
             user.save(update_fields=["full_name"])
 
-        # ==== JWT 발급 ====
+        # 6) JWT 발급
         tokens = _issue_jwt_for_user(user)
         user_data = UserDetailsSerializer(user).data
 
@@ -229,11 +238,10 @@ class GoogleLoginCode(APIView):
 
     def _get_google_userinfo(self, access_token: str | None, id_token: str | None) -> dict:
         """
-        - id_token 이 있으면 tokeninfo 엔드포인트로 검증
+        - id_token 이 있으면 tokeninfo(id_token=...) 로 검증
         - 없고 access_token만 있으면 userinfo 엔드포인트 호출
-        둘 다 구글에 'code 교환'이 아니라, 이미 발급된 토큰의 유효성 검증만 함.
         """
-        # 1) ID 토큰이 있는 경우: tokeninfo(id_token=...) 으로 검증
+        # 1) ID 토큰이 있는 경우
         if id_token:
             resp = requests.get(
                 "https://oauth2.googleapis.com/tokeninfo",
@@ -244,14 +252,14 @@ class GoogleLoginCode(APIView):
             if resp.status_code != 200:
                 raise Exception(f"tokeninfo(id_token) error: {data}")
 
-            # aud 검증 (우리 앱의 client_id와 맞는지)
+            # aud 검증 (우리 client_id와 일치하는지)
             aud = data.get("aud")
             if settings.GOOGLE_CLIENT_ID and aud != settings.GOOGLE_CLIENT_ID:
                 raise Exception(f"Invalid aud: {aud}")
 
             return data
 
-        # 2) access_token 만 있는 경우: userinfo 엔드포인트로 유저 정보 가져오기
+        # 2) access_token만 있는 경우
         headers = {"Authorization": f"Bearer {access_token}"}
         resp = requests.get(
             "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -262,27 +270,52 @@ class GoogleLoginCode(APIView):
         if resp.status_code != 200:
             raise Exception(f"userinfo(access_token) error: {data}")
 
-        # 필요하다면 여기서도 aud 검증을 위해 tokeninfo(access_token=...) 한번 더 호출 가능
         return data
 
     def _exchange_code_for_tokens(
-        self, code: str, redirect_uri: str | None, code_verifier: str | None
+        self,
+        code: str,
+        redirect_uri: str | None,
+        code_verifier: str | None,
     ) -> dict:
+        """
+        Authorization Code + (선택) PKCE code_verifier 를 사용해서
+        구글 토큰 엔드포인트로 access_token / id_token 을 교환한다.
+        """
+
         if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
             raise Exception("google client 설정이 없습니다.")
+
+        # 항상 서버 설정값을 기준으로 사용
+        final_redirect_uri = settings.GOOGLE_REDIRECT_URI
+        if redirect_uri and redirect_uri != final_redirect_uri:
+            logger.warning(
+                "GoogleLoginCode: redirect_uri mismatch (프론트 vs 서버 설정)",
+                extra={
+                    "frontend_redirect_uri": redirect_uri,
+                    "settings_redirect_uri": final_redirect_uri,
+                },
+            )
 
         payload = {
             "code": code,
             "client_id": settings.GOOGLE_CLIENT_ID,
             "client_secret": settings.GOOGLE_CLIENT_SECRET,
-            "redirect_uri": redirect_uri or settings.GOOGLE_REDIRECT_URI,
+            "redirect_uri": final_redirect_uri,
             "grant_type": "authorization_code",
         }
+
         if code_verifier:
             payload["code_verifier"] = code_verifier
 
-        resp = requests.post("https://oauth2.googleapis.com/token", data=payload, timeout=5)
+        resp = requests.post(
+            "https://oauth2.googleapis.com/token",
+            data=payload,
+            timeout=5,
+        )
         data = resp.json()
+
         if resp.status_code != 200:
             raise Exception(f"token 교환 실패: {data}")
+
         return data
