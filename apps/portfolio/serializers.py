@@ -4,10 +4,52 @@ from apps.activity.serializers import ActivitySerializer
 from apps.activity.models import Activity
 
 class PortfolioSerializer(serializers.ModelSerializer):
+    activities = ActivitySerializer(many=True, read_only=True)
+    activity_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Activity.objects.all(),
+        many=True,
+        write_only=True,
+        required=False,
+    )
+
     class Meta:
         model = Portfolio
-        fields = ['id', 'concept_line', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'title',
+            'selected_tags',
+            'work_style',
+            'strengths',
+            'concept_line',
+            'activities',
+            'activity_ids',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'activities']
+
+    def create(self, validated_data):
+        acts = validated_data.pop('activity_ids', [])
+        portfolio = Portfolio.objects.create(**validated_data)
+        if acts:
+            portfolio.activities.set(acts)
+        return portfolio
+
+    def update(self, instance, validated_data):
+        acts = validated_data.pop('activity_ids', None)
+        portfolio = super().update(instance, validated_data)
+        if acts is not None:
+            portfolio.activities.set(acts)
+        return portfolio
+
+    def validate(self, attrs):
+        acts = attrs.get("activity_ids")
+        request = self.context.get("request")
+        if acts is not None and request is not None:
+            invalid = [a.id for a in acts if a.user_id != request.user.id]
+            if invalid:
+                raise serializers.ValidationError({"activity_ids": "본인 활동만 선택할 수 있습니다."})
+        return attrs
 
 
 class PortfolioDetailSerializer(serializers.ModelSerializer):
@@ -16,7 +58,12 @@ class PortfolioDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Portfolio
         fields = [
-            'id', 'concept_line',
+            'id',
+            'title',
+            'selected_tags',
+            'work_style',
+            'strengths',
+            'concept_line',
             'activities',
             'created_at', 'updated_at'
         ]

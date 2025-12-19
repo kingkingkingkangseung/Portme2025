@@ -1,11 +1,24 @@
 from django.db import models
+from django.core.validators import MaxLengthValidator
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 class Portfolio(models.Model):
     user         = models.ForeignKey(User, on_delete=models.CASCADE)
-    concept_line = models.CharField("컨셉 라인", max_length=255)
+    title = models.CharField("포트폴리오 제목", max_length=200, blank=True, default="")
+    selected_tags = models.JSONField("선택 태그", default=list, blank=True)
+    work_style = models.TextField(
+        "업무 스타일",
+        blank=True,
+        validators=[MaxLengthValidator(200)],
+    )
+    strengths = models.TextField(
+        "강점",
+        blank=True,
+        validators=[MaxLengthValidator(200)],
+    )
+    concept_line = models.CharField("컨셉 라인", max_length=255, blank=True)
 
 
     activities   = models.ManyToManyField(
@@ -20,7 +33,8 @@ class Portfolio(models.Model):
     updated_at   = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.concept_line[:20]} ({self.user.username})"
+        label = self.title or self.concept_line
+        return f"{label[:20]} ({self.user.username})"
 
 
 # ============================
