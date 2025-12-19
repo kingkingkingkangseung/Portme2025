@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.utils import timezone
 
-from apps.dashboard.models import ExperienceNote
+from apps.dashboard.models import ExperienceNote, GoalVision
 from apps.activity.models import Activity
 from apps.portfolio.models import Project
 
@@ -67,3 +67,21 @@ class ActivityBoardSerializer(serializers.ModelSerializer):
             "updated_at",
         )
         read_only_fields = ("created_at", "updated_at")
+
+
+class GoalVisionSerializer(serializers.ModelSerializer):
+    goal = serializers.CharField(source="content", write_only=True, required=False, allow_blank=True)
+    is_done = serializers.BooleanField(source="is_completed", write_only=True, required=False)
+
+    class Meta:
+        model = GoalVision
+        fields = (
+            "id",
+            "content",
+            "goal",
+            "is_completed",
+            "is_done",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "created_at", "updated_at")

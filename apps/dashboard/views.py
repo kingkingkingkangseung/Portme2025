@@ -9,8 +9,8 @@ from rest_framework import status
 from apps.activity.models import Activity, Award, Certification, GlobalExp, ForeignLang
 from apps.portfolio.models import Portfolio, Project
 from apps.user.models import Skill
-from apps.dashboard.models import ExperienceNote
-from apps.dashboard.serializers import ExperienceNoteSerializer, ActivityBoardSerializer
+from apps.dashboard.models import ExperienceNote, GoalVision
+from apps.dashboard.serializers import ExperienceNoteSerializer, ActivityBoardSerializer, GoalVisionSerializer
 
 
 class HomeSummaryAPIView(APIView):
@@ -120,3 +120,25 @@ class ExperienceBoardAPIView(APIView):
             updated_instances.append(activity)
         serializer = ActivityBoardSerializer(updated_instances, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class GoalVisionAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        goal, _ = GoalVision.objects.get_or_create(user=request.user)
+        return Response(GoalVisionSerializer(goal).data)
+
+    def put(self, request):
+        goal, _ = GoalVision.objects.get_or_create(user=request.user)
+        serializer = GoalVisionSerializer(goal, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        goal, _ = GoalVision.objects.get_or_create(user=request.user)
+        serializer = GoalVisionSerializer(goal, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response(serializer.data)

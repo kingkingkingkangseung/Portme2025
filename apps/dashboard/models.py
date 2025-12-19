@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.core.validators import MaxLengthValidator
 
 
 class ExperienceNote(models.Model):
@@ -33,3 +34,22 @@ class ExperienceNote(models.Model):
 
     def __str__(self):
         return f"{self.user} @ {self.date}"
+
+
+class GoalVision(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="goal_vision",
+    )
+    content = models.TextField(
+        "목표 내용",
+        blank=True,
+        validators=[MaxLengthValidator(200)],
+    )
+    is_completed = models.BooleanField("완료 여부", default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.content[:20]}"
