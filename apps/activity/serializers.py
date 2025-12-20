@@ -185,9 +185,19 @@ class ActivitySerializer(serializers.ModelSerializer):
             activity.tags.set(flat)
 
     def create(self, validated_data):
+        role_items = validated_data.pop("role_items", None)
+        tags_payload = {
+            "primary_tag_ids": validated_data.pop("primary_tag_ids", None),
+            "secondary_tag_ids": validated_data.pop("secondary_tag_ids", None),
+            "tag_ids": validated_data.pop("tag_ids", None),
+        }
         activity = Activity.objects.create(**validated_data)
-        self._save_tags(activity, validated_data, on_create=True)
-        self._save_roles(activity, validated_data)
+        self._save_tags(activity, tags_payload, on_create=True)
+        if role_items is not None:
+            activity.roles.all().delete()
+            ActivityRole.objects.bulk_create(
+                [ActivityRole(activity=activity, **item) for item in role_items]
+            )
         return activity
 
     def update(self, instance, validated_data):
