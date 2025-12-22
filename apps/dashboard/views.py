@@ -34,24 +34,43 @@ class HomeSummaryAPIView(APIView):
 class ExperienceNoteView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def _get_target_date(self, request, default=None):
+    def _parse_target_date(self, request, default=None):
         param = request.query_params.get("date") or request.data.get("date")
-        if param:
-            try:
-                return datetime.fromisoformat(param).date()
-            except ValueError:
-                pass
-        return default or timezone.localdate()
+        if not param:
+            return default or timezone.localdate(), None
+        try:
+            return datetime.fromisoformat(param).date(), None
+        except ValueError:
+            return None, "date는 YYYY-MM-DD 형식이어야 합니다."
 
     def get(self, request):
-        target_date = self._get_target_date(request)
+        target_date, error = self._parse_target_date(request)
+        if error:
+            return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
         note = ExperienceNote.objects.filter(user=request.user, date=target_date).first()
         data = ExperienceNoteSerializer(note).data if note else None
         return Response({"date": target_date.isoformat(), "note": data})
 
+    def post(self, request):
+        user = request.user
+        target_date, error = self._parse_target_date(request)
+        if error:
+            return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
+        if ExperienceNote.objects.filter(user=user, date=target_date).exists():
+            return Response({"detail": "해당 날짜의 노트가 이미 존재합니다."}, status=status.HTTP_409_CONFLICT)
+
+        payload = request.data.copy()
+        payload["date"] = target_date.isoformat()
+        serializer = ExperienceNoteSerializer(data=payload, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     def put(self, request):
         user = request.user
-        target_date = self._get_target_date(request)
+        target_date, error = self._parse_target_date(request)
+        if error:
+            return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
         payload = request.data.copy()
         payload["date"] = target_date.isoformat()
         note, _ = ExperienceNote.objects.get_or_create(user=user, date=target_date)
@@ -63,6 +82,13 @@ class ExperienceNoteView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save(user=user)
         return Response(serializer.data)
+
+    def delete(self, request):
+        target_date, error = self._parse_target_date(request)
+        if error:
+            return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
+        ExperienceNote.objects.filter(user=request.user, date=target_date).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ExperienceBoardAPIView(APIView):
