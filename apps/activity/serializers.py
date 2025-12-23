@@ -80,6 +80,11 @@ class ActivitySerializer(serializers.ModelSerializer):
     category = ActivityCategorySerializer(read_only=True)
     experience_notes = serializers.SerializerMethodField(read_only=True)
     sub_activities = SubActivitySerializer(many=True, read_only=True)
+    activity_type = serializers.ChoiceField(
+        choices=Activity.Type.choices,
+        required=False,
+        default=Activity.Type.PROJECT,
+    )
 
     # 쓰기용 필드들 (응답에는 포함되지만, 의미상 입력용)
     category_id = serializers.PrimaryKeyRelatedField(
@@ -119,6 +124,7 @@ class ActivitySerializer(serializers.ModelSerializer):
             "id",
             # 상단 기본 정보
             "title",
+            "activity_type",
             "period_start",
             "period_end",
             "organization",
@@ -156,6 +162,30 @@ class ActivitySerializer(serializers.ModelSerializer):
             "experience_notes",
             "sub_activities",
         ]
+
+    def validate_activity_type(self, value):
+        if not value:
+            return Activity.Type.PROJECT
+        normalized = str(value).strip().upper()
+        alias_map = {
+            "PROJECT": Activity.Type.PROJECT,
+            "PROJ": Activity.Type.PROJECT,
+            "CONTEST": Activity.Type.CONTEST,
+            "COMPETITION": Activity.Type.CONTEST,
+            "EXTRACURRICULAR": Activity.Type.EXTRACURRICULAR,
+            "EXTERNAL": Activity.Type.EXTRACURRICULAR,
+            "CAMPUS": Activity.Type.CAMPUS,
+            "CLUB": Activity.Type.CLUB,
+            "HACKATHON": Activity.Type.HACKATHON,
+            "RESEARCH": Activity.Type.RESEARCH,
+            "EDUCATION": Activity.Type.EDUCATION,
+            "STARTUP": Activity.Type.STARTUP,
+            "VOLUNTEER": Activity.Type.VOLUNTEER,
+            "OTHER": Activity.Type.OTHER,
+        }
+        if normalized in alias_map:
+            return alias_map[normalized]
+        raise serializers.ValidationError("activity_type 값이 유효하지 않습니다.")
 
     def _save_roles(self, activity, validated_data):
         role_items = validated_data.pop("role_items", None)

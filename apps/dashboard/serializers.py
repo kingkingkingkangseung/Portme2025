@@ -54,6 +54,7 @@ class ActivityBoardSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
+            "activity_type",
             "organization",
             "period_start",
             "period_end",

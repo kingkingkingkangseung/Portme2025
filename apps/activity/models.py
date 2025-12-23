@@ -33,6 +33,19 @@ class Tag(models.Model):
 
 
 class Activity(models.Model):
+    class Type(models.TextChoices):
+        PROJECT = "PROJECT", "프로젝트"
+        CONTEST = "CONTEST", "공모전"
+        EXTRACURRICULAR = "EXTRACURRICULAR", "대외활동"
+        CAMPUS = "CAMPUS", "교내활동"
+        CLUB = "CLUB", "동아리"
+        HACKATHON = "HACKATHON", "해커톤"
+        RESEARCH = "RESEARCH", "연구"
+        EDUCATION = "EDUCATION", "교육"
+        STARTUP = "STARTUP", "창업"
+        VOLUNTEER = "VOLUNTEER", "봉사"
+        OTHER = "OTHER", "기타"
+
     class Status(models.TextChoices):
         IN_PROGRESS = "in_progress", "진행 중"
         HIGHLIGHT = "highlight", "주요 스펙"
@@ -42,6 +55,12 @@ class Activity(models.Model):
 
     # 기본 정보
     title = models.CharField("활동명", max_length=200)
+    activity_type = models.CharField(
+        "활동 타입",
+        max_length=20,
+        choices=Type.choices,
+        default=Type.PROJECT,
+    )
     period_start = models.DateField("활동 시작일", null=True, blank=True)
     period_end = models.DateField("활동 종료일", null=True, blank=True)
     role = models.CharField("역할 / 담당", max_length=200, blank=True)
@@ -368,4 +387,3 @@ class SubActivity(models.Model):
 
     def __str__(self) -> str:
         return f"{self.activity_id} - {self.title}"
-

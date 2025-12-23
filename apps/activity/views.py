@@ -40,6 +40,7 @@ class ActivityListCreateAPIView(generics.ListCreateAPIView):
         category_id = self.request.query_params.get("category_id")
         category_key = self.request.query_params.get("category")
         status_param = self.request.query_params.get("status")
+        type_param = self.request.query_params.get("type")
 
         if category_id:
             qs = qs.filter(category_id=category_id)
@@ -47,6 +48,8 @@ class ActivityListCreateAPIView(generics.ListCreateAPIView):
             qs = qs.filter(category__key=category_key)
         if status_param:
             qs = qs.filter(status=status_param)
+        if type_param:
+            qs = qs.filter(activity_type=str(type_param).strip().upper())
 
         return qs
 
